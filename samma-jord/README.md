@@ -76,6 +76,38 @@ Visa i stället hur valet såg ut inifrån – inte det stora valet (fascism ell
 
 ---
 
+## Tråd: soporna i jorden
+
+Både i Italien och i Sverige har avtal om deponi av avfall fuskats fram, och avfallet har grävts ner på platser som ingen skulle känna till. Det här är också samma jord.
+
+### Varför tråden bär
+
+- **Ingen hemlighet i mitten, bara en faktura.** Det börjar i en upphandling där det lägsta anbudet vinner. Beställaren betalar ett pris som är för lågt för att vara lagligt och frågar inte hur det går ihop. Det är kullagret igen: systemet är inte dolt, det är bara för tråkigt för att någon ska stanna.
+- **Jorden minns det som papperen glömmer.** Kontrakten är arkiverade eller makulerade och bolagen är konkursade, men marken håller kvar. Tungmetaller i grönsaker, cancerfall per kvarter och ett grundvatten som byter färg.
+- **Gravar och deponier.** Samma jord tar emot det ingen vill ha: avfall, döda och namn ingen efterfrågar. Pojken på plåtbiten och fatet under åkern hör till samma kategori, sådant som man har gjort sig av med.
+- **Vattnet går in i jorden.** Det som grävs ner hamnar till slut i grundvattnet, så de två böckerna flyter ihop.
+
+### Förlagor (att researcha, inte att återge)
+
+- **Italien, *Terra dei Fuochi*:** Kampanien mellan Neapel och Caserta. Industriavfall från norra Italien grävdes ner och brändes under jordbruksmark genom mellanhänder. Avhopparvittnesmål från slutet av 1990-talet hemligstämplades och blev offentliga först många år senare.
+- **Italien, *navi dei veleni*:** misstankar om fartyg med giftlast som sänktes i Medelhavet. Utredningarna har aldrig kunnat bevisa något, och det passar romanens logik: inget svar, bara nästa fråga. Här möts vatten och jord.
+- **Sverige, avfallsbolag med låga anbud:** kommuner och företag anlitade det billigaste alternativet. Avfallet blev liggande i högar eller grävdes ner, och bolaget gick i konkurs. Kommunerna blev kvar med saneringen, som målet Think Pink (Sveriges största miljöbrottsmål).
+
+Detaljerna, som datum, domar och platser, ska kontrolleras mot källor. I romanen fiktionaliseras bolag och personer, och de verkliga fallen fungerar som mönster.
+
+### Risker
+
+- **Maffian är ett färdigt ansikte.** Camorran är den enklaste skurken som finns, och det hotar princip 1. Lösningen är att låta den organiserade brottsligheten vara ett led av flera: den som tar uppdraget billigt. Efterfrågan kommer från den legala sidan, från fabriken i norr, kommunen och den som skrev under upphandlingen.
+- **Miljöreportage i stället för roman.** Gå inte in via statistiken utan via en åker, en brunn, ett barn med utslag och en man som vet vad hans far grävde ner.
+
+### Möjliga kopplingar
+
+- Kan jorden i Enzos släkt vara förgiftad, och kan någon i släkten ha grävt?
+- Möter Enzo den yngre samma mönster i Sverige, med samma sorts anbud, samma sorts konkurs och samma sorts tystnad?
+- Kan en deponi och en massgrav ligga på samma plats i berättelsen, 1943 och nu?
+
+---
+
 ## Serien: fyra element
 
 | Bok | Element | Kärna |
