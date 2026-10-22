@@ -3,20 +3,10 @@
 Ta reda på om en webbplats är byggd i PHP. Skriv in en adress, tryck på **Kontrollera**,
 och få svaret på vanlig svenska.
 
-## Kom igång (ingen teknisk kunskap behövs)
+## Använd den
 
-1. **Ladda ner** den här mappen till din dator.
-2. **Dubbelklicka** på startfilen:
-   - Windows: `Starta PHP-kollen (Windows).bat`
-   - Mac: `Starta PHP-kollen (Mac).command`
-     (första gången: högerklicka på filen, välj **Öppna** och sedan **Öppna** igen)
-3. Din webbläsare öppnas med PHP-kollen. Skriv in en adress, till exempel `wordpress.org`.
-
-Saknas programmet Node.js på datorn öppnas en sida där du kan ladda ner det.
-Välj versionen märkt **LTS**, installera den och dubbelklicka på startfilen igen.
-
-Ett svart fönster öppnas också. Det är själva programmet. Låt det vara öppet medan du
-använder PHP-kollen och stäng det när du är klar.
+Gå till **https://phpkollen.se**, skriv in en adress, till exempel `wordpress.org`, och tryck på
+**Kontrollera**. Inget behöver installeras.
 
 ## Vad betyder svaren?
 
@@ -36,35 +26,52 @@ Under svaret står varför vi kom fram till det. Den som vill kan klicka på
 
 Längst ner på sidan finns en färdig kod och en knapp, **Kopiera koden**. Klistra in koden på din
 hemsida, eller skicka den till den som sköter hemsidan, så får besökarna en egen liten PHP-kollen-ruta.
-Observera att rutan bara fungerar så länge PHP-kollen är igång på en dator eller server som besökarna når.
 
-## Publicera på phpkollen.se
+## Publicera på phpkollen.se (Cloudflare)
 
-Tjänsten behöver ligga på en server som alltid är igång. Enklast är [Render](https://render.com),
-där allt redan är förberett i filen `render.yaml`:
+Tjänsten körs på Cloudflare Workers. Det kostar normalt ingenting och kräver ingen egen server.
 
-1. Skapa ett konto på render.com och logga in med ditt GitHub-konto.
-2. Välj **New → Blueprint** och sedan det här repot. Render läser `render.yaml` och sätter upp allt.
-3. Under tjänstens **Settings → Custom Domains** står två DNS-poster som Render vill att du lägger in.
-4. Logga in där du köpte phpkollen.se, gå till **DNS-inställningar** och lägg in de posterna.
-5. Vänta en stund (oftast under en timme). Render ordnar då ett säkerhetscertifikat (https) automatiskt.
+**1. Lägg phpkollen.se i Cloudflare** (hoppa över om domänen redan ligger där)
+1. Logga in på dash.cloudflare.com och välj **Add a domain**. Skriv `phpkollen.se` och välj gratisplanen.
+2. Cloudflare visar två *namnservrar*. Logga in där du köpte domänen och byt till dem.
+3. Vänta tills Cloudflare säger att domänen är aktiv. Det kan ta några timmar.
 
-`render.yaml` använder planen *Starter*, som kostar en liten summa per månad. Den kostnadsfria planen
-somnar när ingen använder den, och första besökaren får då vänta nästan en minut, vilket känns trasigt.
+**2. Koppla koden**
+1. I Cloudflare: **Workers & Pages → Create → Import a repository**, och välj det här GitHub-repot.
+2. Ange **Root directory**: `php-check`. Låt byggkommandot vara tomt och använd
+   `npx wrangler deploy` som deploy-kommando.
+3. Spara. Cloudflare publicerar tjänsten och kopplar den till phpkollen.se automatiskt
+   (det står i `wrangler.toml`).
 
-Vill du hellre använda en annan värd finns en `Dockerfile` som fungerar hos de flesta (Fly.io, Railway,
-Scaleway, ett eget VPS m.fl.). Sätt `TRUST_PROXY=1` när tjänsten ligger bakom värdens lastbalanserare.
+Varje gång ändringar läggs in på huvudgrenen publiceras de på nytt av sig själv.
+
+**Bra att veta**
+- Gratisplanen tillåter 100 000 kontroller per dag, och mycket kort beräkningstid per kontroll.
+  Skulle stora sidor ibland ge fel kan Cloudflares billigaste betalplan behövas.
+- Vill du att `www.phpkollen.se` också ska fungera: lägg till den under **Settings → Domains & Routes**
+  för workern, eller gör en omdirigering till phpkollen.se under domänens **Rules**.
 
 ---
 
 ## För utvecklare
 
 ```sh
-npm start            # http://localhost:3000 (ändra med PORT=8080)
+cd php-check
+npm install
+npm run dev          # kör lokalt i Cloudflares miljö, http://localhost:8787
 npm test
+npm run deploy       # publicera direkt från datorn (kräver inloggning: npx wrangler login)
 ```
 
-Kräver Node 18+, inga beroenden.
+Filer:
+
+| Fil | Innehåll |
+| --- | --- |
+| `worker.mjs` | Cloudflare Worker: tar emot `/api/check`, hämtar sidan, felhantering, spärr och cache |
+| `detect.js` | Letar efter PHP-spår i svarshuvuden och HTML |
+| `version.js` | När PHP-versionerna slutar få säkerhetsuppdateringar |
+| `public/` | Webbsidan och widgeten (serveras direkt av Cloudflare) |
+| `wrangler.toml` | Cloudflare-inställningar: domän, spärr för antal kontroller |
 
 ### API
 
@@ -89,7 +96,7 @@ Kräver Node 18+, inga beroenden.
 `php` är `null` om versionen inte syns. Datumen för när versionerna slutar underhållas ligger i
 `version.js` och behöver uppdateras när nya PHP-versioner släpps (se php.net/supported-versions.php).
 
-Vid fel: HTTP 400 med `{ "error": "<begriplig förklaring>" }`.
+Vid fel: HTTP 400 (eller 429 vid för många kontroller) med `{ "error": "<begriplig förklaring>" }`.
 
 ### Widget
 
@@ -110,18 +117,15 @@ och ritas i en Shadow DOM, så sidans CSS påverkar den inte.
 - Adress som slutar på `.php`, länkar och formulär till `.php`-filer
 - PHP-baserade CMS: WordPress, Joomla, Drupal, TYPO3, Magento m.fl. (generator-tagg, `wp-content`, `X-Pingback`)
 
-### Inställningar
+### Spärr och cache
 
-| Variabel | Standard | Betydelse |
-| --- | --- | --- |
-| `PORT` | `3000` | Port att lyssna på |
-| `TRUST_PROXY` | av | `1` = läs besökarens IP från `X-Forwarded-For` (sätt bakom en värdtjänst) |
-| `RATE_LIMIT` | `20` | Max antal kontroller per besökare och minut |
-
-`GET /healthz` svarar `ok` och används av värdtjänsten för att se att tjänsten lever.
-Samma adress kontrolleras högst en gång per fem minuter; därefter används sparat svar.
+Varje besökare (IP-adress) får göra 20 kontroller per minut; ändras i `wrangler.toml` under
+`[[ratelimits]]`. Samma adress kontrolleras högst en gång per fem minuter, därefter används
+Cloudflares cache (fungerar bara på den egna domänen, inte på `*.workers.dev`).
 
 ### Säkerhet
 
-Servern vägrar adresser som pekar på interna nät (localhost, 10/8, 192.168/16, 169.254/16 m.fl.,
-även efter omdirigering) och begränsar svarsstorlek (1 MB), tid (8 s) och antal omdirigeringar (5).
+Cloudflare tillåter inte anrop från en Worker till interna nät eller direkt till IP-adresser.
+Koden stoppar dessutom uppenbart interna adresser (localhost, 10/8, 192.168/16, 169.254/16, `.local` m.fl.,
+även efter omdirigering) med ett begripligt besked. Högst 512 kB av varje sida läses, tidsgränsen är 8 s
+och högst 5 omdirigeringar följs.

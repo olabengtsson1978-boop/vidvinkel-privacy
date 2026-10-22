@@ -1,0 +1,24 @@
+# Cloudflare Workers-inställningar för phpkollen.se.
+name = "phpkollen"
+main = "worker.mjs"
+compatibility_date = "2026-10-01"
+
+# Kräver att phpkollen.se ligger i ditt Cloudflare-konto.
+routes = [
+  { pattern = "phpkollen.se", custom_domain = true },
+]
+
+# Sidan och widgeten serveras direkt från public/. Bara /api/* går till koden i worker.mjs.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+# Max 20 kontroller per besökare och minut.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 20
+  period = 60

@@ -1,12 +1,17 @@
 {
-  "name": "php-check",
+  "name": "phpkollen",
   "version": "1.0.0",
-  "description": "Webbapp och widget som kontrollerar om en webbsida är byggd i PHP",
+  "description": "phpkollen.se – kontrollerar om en webbplats är byggd i PHP",
   "private": true,
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
     "test": "node --test"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "wrangler": "^4.152.0"
+  }
 }

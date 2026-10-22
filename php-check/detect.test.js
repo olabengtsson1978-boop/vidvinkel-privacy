@@ -3,7 +3,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const { detect } = require('./detect');
-const { isPrivateAddress } = require('./server');
 
 const run = (headers, html = '', finalUrl = 'https://example.com/') =>
   detect({ headers, html, finalUrl });
@@ -31,12 +30,6 @@ test('inga tecken ger nej', () => {
   assert.strictEqual(r.confidence, 0);
 });
 
-test('interna adresser blockeras', () => {
-  for (const ip of ['127.0.0.1', '10.1.2.3', '192.168.0.1', '172.20.0.1', '169.254.169.254', '::1', '::ffff:127.0.0.1', 'fd00::1']) {
-    assert.ok(isPrivateAddress(ip), ip);
-  }
-  assert.ok(!isPrivateAddress('93.184.216.34'));
-});
 
 test('svaren förklaras på vanlig svenska utan dubbletter', () => {
   const html = '<meta name="generator" content="WordPress 6.6"><img src="/wp-content/a.png">';
@@ -64,14 +57,4 @@ test('distributionernas egna säkerhetsuppdateringar nämns', () => {
   assert.ok(r.backported);
   assert.match(r.message, /webbhotellet/i);
   assert.ok(!versionStatus('PHP/7.4.33', OCT_2026).backported);
-});
-
-test('för många kontroller per minut stoppas', () => {
-  const { rateLimited } = require('./server');
-  const now = Date.now();
-  let blocked = false;
-  for (let i = 0; i < 25; i++) blocked = rateLimited('203.0.113.9', now);
-  assert.ok(blocked);
-  assert.ok(!rateLimited('203.0.113.10', now));
-  assert.ok(!rateLimited('203.0.113.9', now + 61 * 1000));
 });
