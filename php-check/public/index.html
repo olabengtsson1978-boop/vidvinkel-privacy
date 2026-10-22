@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PHP-koll</title>
+  <style>
+    :root { --fg: #1f2328; --muted: #57606a; --line: #d0d7de; --accent: #777bb4; --bg: #f6f8fa; --card: #fff; }
+    @media (prefers-color-scheme: dark) {
+      :root { --fg: #e6edf3; --muted: #9198a1; --line: #3d444d; --bg: #0d1117; --card: #151b23; }
+    }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); background: var(--bg);
+      max-width: 720px; margin: 40px auto; padding: 0 16px; line-height: 1.6; }
+    h1 { font-size: 28px; margin-bottom: 4px; }
+    h1 span { background: var(--accent); color: #fff; border-radius: 6px; padding: 0 8px; font-size: 22px; }
+    h2 { font-size: 18px; margin-top: 36px; }
+    .lead { color: var(--muted); margin-top: 0; }
+    form { display: flex; gap: 8px; margin: 24px 0 16px; }
+    input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid var(--line);
+      border-radius: 8px; background: var(--card); color: var(--fg); }
+    button { font: inherit; font-size: 16px; padding: 10px 18px; border: 0; border-radius: 8px;
+      background: var(--accent); color: #fff; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+    .verdict { font-size: 22px; font-weight: 700; margin: 0; }
+    .yes { color: #1a7f37; } .likely { color: #bf8700; } .no { color: var(--muted); } .error { color: #cf222e; }
+    .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 10px 0; }
+    .bar div { height: 100%; background: var(--accent); transition: width .4s; }
+    .meta { color: var(--muted); font-size: 14px; word-break: break-all; }
+    ul { padding-left: 20px; }
+    pre { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px;
+      overflow-x: auto; font-size: 13px; }
+    [hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <h1><span>php</span> PHP-koll</h1>
+  <p class="lead">Ange en webbadress så kontrollerar vi om sidan är byggd i PHP.</p>
+
+  <form id="form">
+    <input id="url" type="text" placeholder="t.ex. wordpress.org" aria-label="Webbadress" required autofocus>
+    <button id="btn" type="submit">Kontrollera</button>
+  </form>
+
+  <div id="out" class="card" hidden>
+    <p id="verdict" class="verdict"></p>
+    <div class="bar"><div id="bar" style="width:0"></div></div>
+    <div id="meta" class="meta"></div>
+    <ul id="signals"></ul>
+  </div>
+
+  <h2>Hur fungerar det?</h2>
+  <p>Servern hämtar sidan och letar efter spår av PHP: <code>X-Powered-By</code>-huvudet,
+  PHP-cookies som <code>PHPSESSID</code> eller <code>laravel_session</code>, adresser som slutar på
+  <code>.php</code>, länkar till <code>.php</code>-filer och PHP-baserade publiceringssystem som
+  WordPress, Joomla och Drupal. Många sajter döljer sådana spår, så "inga tecken" betyder inte att
+  sidan garanterat saknar PHP.</p>
+
+  <h2>Bädda in widgeten</h2>
+  <p>Klistra in på valfri sida:</p>
+  <pre id="snippet"></pre>
+  <p>Med <code>data-url</code> visas resultatet för en fast adress direkt:</p>
+  <pre id="snippet2"></pre>
+  <p>Så här ser den ut:</p>
+  <div class="php-check-widget"></div>
+
+  <script src="widget.js"></script>
+  <script>
+    const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+    document.getElementById('snippet').textContent =
+      `<script src="${base}widget.js" defer><\/script>\n<div class="php-check-widget"></div>`;
+    document.getElementById('snippet2').textContent =
+      `<div class="php-check-widget" data-url="wordpress.org"></div>`;
+
+    const TEXT = { yes: 'Ja, sidan är byggd i PHP', likely: 'Troligen byggd i PHP',
+      no: 'Inga tecken på PHP hittades' };
+    const $ = (id) => document.getElementById(id);
+
+    $('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('btn').disabled = true;
+      $('out').hidden = false;
+      $('verdict').className = 'verdict';
+      $('verdict').textContent = 'Kontrollerar…';
+      $('meta').textContent = '';
+      $('signals').textContent = '';
+      $('bar').style.width = '0';
+      let data;
+      try {
+        data = await (await fetch('api/check?url=' + encodeURIComponent($('url').value))).json();
+      } catch {
+        data = { error: 'Kunde inte nå tjänsten.' };
+      }
+      $('btn').disabled = false;
+      if (data.error) {
+        $('verdict').className = 'verdict error';
+        $('verdict').textContent = data.error;
+        return;
+      }
+      $('verdict').className = 'verdict ' + data.verdict;
+      $('verdict').textContent = TEXT[data.verdict];
+      $('bar').style.width = data.confidence + '%';
+      $('meta').textContent = `${data.url} · HTTP ${data.status} · säkerhet ${data.confidence} %`;
+      for (const s of data.signals) {
+        const li = document.createElement('li');
+        li.textContent = s;
+        $('signals').appendChild(li);
+      }
+    });
+  </script>
+</body>
+</html>
