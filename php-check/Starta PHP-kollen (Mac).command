@@ -2,7 +2,7 @@
 cd "$(dirname "$0")"
 if ! command -v node >/dev/null 2>&1; then
   echo
-  echo "PHP-koll behöver programmet Node.js för att fungera."
+  echo "PHP-kollen behöver programmet Node.js för att fungera."
   echo "Webbsidan där du kan ladda ner det öppnas nu. Välj \"LTS\", installera,"
   echo "och dubbelklicka sedan på den här filen igen."
   echo

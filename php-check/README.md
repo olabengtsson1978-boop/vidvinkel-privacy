@@ -1,4 +1,4 @@
-# PHP-koll
+# PHP-kollen (phpkollen.se)
 
 Ta reda på om en webbplats är byggd i PHP. Skriv in en adress, tryck på **Kontrollera**,
 och få svaret på vanlig svenska.
@@ -7,16 +7,16 @@ och få svaret på vanlig svenska.
 
 1. **Ladda ner** den här mappen till din dator.
 2. **Dubbelklicka** på startfilen:
-   - Windows: `Starta PHP-koll (Windows).bat`
-   - Mac: `Starta PHP-koll (Mac).command`
+   - Windows: `Starta PHP-kollen (Windows).bat`
+   - Mac: `Starta PHP-kollen (Mac).command`
      (första gången: högerklicka på filen, välj **Öppna** och sedan **Öppna** igen)
-3. Din webbläsare öppnas med PHP-koll. Skriv in en adress, till exempel `wordpress.org`.
+3. Din webbläsare öppnas med PHP-kollen. Skriv in en adress, till exempel `wordpress.org`.
 
 Saknas programmet Node.js på datorn öppnas en sida där du kan ladda ner det.
 Välj versionen märkt **LTS**, installera den och dubbelklicka på startfilen igen.
 
 Ett svart fönster öppnas också. Det är själva programmet. Låt det vara öppet medan du
-använder PHP-koll och stäng det när du är klar.
+använder PHP-kollen och stäng det när du är klar.
 
 ## Vad betyder svaren?
 
@@ -35,8 +35,25 @@ Under svaret står varför vi kom fram till det. Den som vill kan klicka på
 ## Rutan till din egen hemsida
 
 Längst ner på sidan finns en färdig kod och en knapp, **Kopiera koden**. Klistra in koden på din
-hemsida, eller skicka den till den som sköter hemsidan, så får besökarna en egen liten PHP-koll-ruta.
-Observera att rutan bara fungerar så länge PHP-koll är igång på en dator eller server som besökarna når.
+hemsida, eller skicka den till den som sköter hemsidan, så får besökarna en egen liten PHP-kollen-ruta.
+Observera att rutan bara fungerar så länge PHP-kollen är igång på en dator eller server som besökarna når.
+
+## Publicera på phpkollen.se
+
+Tjänsten behöver ligga på en server som alltid är igång. Enklast är [Render](https://render.com),
+där allt redan är förberett i filen `render.yaml`:
+
+1. Skapa ett konto på render.com och logga in med ditt GitHub-konto.
+2. Välj **New → Blueprint** och sedan det här repot. Render läser `render.yaml` och sätter upp allt.
+3. Under tjänstens **Settings → Custom Domains** står två DNS-poster som Render vill att du lägger in.
+4. Logga in där du köpte phpkollen.se, gå till **DNS-inställningar** och lägg in de posterna.
+5. Vänta en stund (oftast under en timme). Render ordnar då ett säkerhetscertifikat (https) automatiskt.
+
+`render.yaml` använder planen *Starter*, som kostar en liten summa per månad. Den kostnadsfria planen
+somnar när ingen använder den, och första besökaren får då vänta nästan en minut, vilket känns trasigt.
+
+Vill du hellre använda en annan värd finns en `Dockerfile` som fungerar hos de flesta (Fly.io, Railway,
+Scaleway, ett eget VPS m.fl.). Sätt `TRUST_PROXY=1` när tjänsten ligger bakom värdens lastbalanserare.
 
 ---
 
@@ -92,6 +109,17 @@ och ritas i en Shadow DOM, så sidans CSS påverkar den inte.
 - PHP-cookies: `PHPSESSID`, `laravel_session`, `ci_session`, `CAKEPHP` m.fl.
 - Adress som slutar på `.php`, länkar och formulär till `.php`-filer
 - PHP-baserade CMS: WordPress, Joomla, Drupal, TYPO3, Magento m.fl. (generator-tagg, `wp-content`, `X-Pingback`)
+
+### Inställningar
+
+| Variabel | Standard | Betydelse |
+| --- | --- | --- |
+| `PORT` | `3000` | Port att lyssna på |
+| `TRUST_PROXY` | av | `1` = läs besökarens IP från `X-Forwarded-For` (sätt bakom en värdtjänst) |
+| `RATE_LIMIT` | `20` | Max antal kontroller per besökare och minut |
+
+`GET /healthz` svarar `ok` och används av värdtjänsten för att se att tjänsten lever.
+Samma adress kontrolleras högst en gång per fem minuter; därefter används sparat svar.
 
 ### Säkerhet
 

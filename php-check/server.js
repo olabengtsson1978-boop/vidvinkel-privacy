@@ -16,11 +16,19 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const MAX_BYTES = 1024 * 1024;
 const TIMEOUT_MS = 8000;
 const MAX_REDIRECTS = 5;
+// Bakom en värdtjänst (Render, Fly m.fl.) kommer besökarens IP i X-Forwarded-For.
+const TRUST_PROXY = process.env.TRUST_PROXY === '1';
+const RATE_LIMIT = Number(process.env.RATE_LIMIT) || 20;
+const RATE_WINDOW_MS = 60 * 1000;
+const CACHE_MS = 5 * 60 * 1000;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.txt': 'text/plain; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
 };
 
 // Fel med text som kan visas för användaren som den är.
@@ -100,6 +108,43 @@ async function fetchOnce(url) {
   });
 }
 
+// Begränsar hur många kontroller en besökare kan göra per minut, så att
+// tjänsten inte kan användas för att belasta andra webbplatser.
+const hits = new Map();
+function rateLimited(ip, now = Date.now()) {
+  const recent = (hits.get(ip) || []).filter((t) => now - t < RATE_WINDOW_MS);
+  recent.push(now);
+  hits.set(ip, recent);
+  return recent.length > RATE_LIMIT;
+}
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, times] of hits) {
+    if (times.every((t) => now - t >= RATE_WINDOW_MS)) hits.delete(ip);
+  }
+  for (const [key, entry] of cache) {
+    if (now - entry.at >= CACHE_MS) cache.delete(key);
+  }
+}, RATE_WINDOW_MS).unref();
+
+function clientIp(req) {
+  if (TRUST_PROXY && req.headers['x-forwarded-for']) {
+    return String(req.headers['x-forwarded-for']).split(',')[0].trim();
+  }
+  return req.socket.remoteAddress;
+}
+
+// Samma adress kontrolleras inte om och om igen inom fem minuter.
+const cache = new Map();
+async function cachedCheck(input) {
+  const key = normalizeUrl(input).href;
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.result;
+  const result = await check(input);
+  cache.set(key, { at: Date.now(), result });
+  return result;
+}
+
 async function check(input) {
   let url = normalizeUrl(input);
   let res;
@@ -146,9 +191,19 @@ function sendJson(res, code, data) {
 const server = http.createServer(async (req, res) => {
   const reqUrl = new URL(req.url, 'http://localhost');
 
+  if (reqUrl.pathname === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('ok');
+    return;
+  }
+
   if (reqUrl.pathname === '/api/check') {
+    if (rateLimited(clientIp(req))) {
+      sendJson(res, 429, { error: 'Du har gjort många kontroller på kort tid. Vänta en minut och försök igen.' });
+      return;
+    }
     try {
-      sendJson(res, 200, await check(reqUrl.searchParams.get('url')));
+      sendJson(res, 200, await cachedCheck(reqUrl.searchParams.get('url')));
     } catch (err) {
       sendJson(res, 400, { error: friendlyError(err) });
     }
@@ -163,13 +218,16 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, {
       'Content-Type': MIME[path.extname(full)] || 'application/octet-stream',
       'Access-Control-Allow-Origin': '*',
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Cache-Control': 'public, max-age=300',
     });
     res.end(data);
   });
 });
 
 if (require.main === module) {
-  server.listen(PORT, () => console.log(`\nPHP-koll är igång! Öppna http://localhost:${PORT} i din webbläsare.\nStäng det här fönstret för att stänga av programmet.\n`));
+  server.listen(PORT, () => console.log(`\nPHP-kollen är igång! Öppna http://localhost:${PORT} i din webbläsare.\nStäng det här fönstret för att stänga av programmet.\n`));
 }
 
-module.exports = { check, isPrivateAddress };
+module.exports = { check, isPrivateAddress, rateLimited };

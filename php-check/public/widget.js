@@ -1,7 +1,7 @@
 /*
- * PHP-koll – inbäddningsbar widget.
+ * PHP-kollen – inbäddningsbar widget.
  *
- *   <script src="https://DIN-SERVER/widget.js" defer></script>
+ *   <script src="https://phpkollen.se/widget.js" defer></script>
  *   <div class="php-check-widget"></div>                         (formulär)
  *   <div class="php-check-widget" data-url="example.com"></div>  (fast adress)
  *

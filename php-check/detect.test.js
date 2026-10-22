@@ -65,3 +65,13 @@ test('distributionernas egna säkerhetsuppdateringar nämns', () => {
   assert.match(r.message, /webbhotellet/i);
   assert.ok(!versionStatus('PHP/7.4.33', OCT_2026).backported);
 });
+
+test('för många kontroller per minut stoppas', () => {
+  const { rateLimited } = require('./server');
+  const now = Date.now();
+  let blocked = false;
+  for (let i = 0; i < 25; i++) blocked = rateLimited('203.0.113.9', now);
+  assert.ok(blocked);
+  assert.ok(!rateLimited('203.0.113.10', now));
+  assert.ok(!rateLimited('203.0.113.9', now + 61 * 1000));
+});

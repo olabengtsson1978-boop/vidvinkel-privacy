@@ -3,7 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PHP-koll</title>
+  <title>PHP-kollen – Är webbplatsen byggd i PHP?</title>
+  <meta name="description" content="Kontrollera gratis om en webbplats är byggd i PHP och om PHP-versionen fortfarande får säkerhetsuppdateringar. Enkelt, på svenska.">
+  <link rel="canonical" href="https://phpkollen.se/">
+  <meta property="og:title" content="PHP-kollen – Är webbplatsen byggd i PHP?">
+  <meta property="og:description" content="Kontrollera gratis om en webbplats är byggd i PHP och om versionen är uppdaterad.">
+  <meta property="og:url" content="https://phpkollen.se/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="sv_SE">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <style>
     :root { --fg: #1f2328; --muted: #57606a; --line: #d0d7de; --accent: #5b5fa8; --bg: #f6f8fa; --card: #fff;
       --yes: #1a7f37; --yes-bg: #dafbe1; --likely: #8a5a00; --likely-bg: #fff8c5;
@@ -17,6 +25,9 @@
     body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); background: var(--bg);
       max-width: 640px; margin: 40px auto; padding: 0 16px; line-height: 1.6; font-size: 17px; }
     h1 { font-size: 32px; margin: 0 0 8px; }
+    .brand { font-weight: 700; font-size: 18px; margin: 0 0 24px; }
+    .brand span { background: var(--accent); color: #fff; border-radius: 6px; padding: 1px 7px; margin-right: 2px; }
+    footer { margin: 48px 0 24px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
     h2 { font-size: 20px; margin-top: 40px; }
     .lead { font-size: 19px; margin-top: 0; }
     label { display: block; font-weight: 600; margin: 28px 0 6px; }
@@ -55,6 +66,7 @@
   </style>
 </head>
 <body>
+  <p class="brand"><span>php</span>kollen.se</p>
   <h1>Är webbplatsen byggd i PHP?</h1>
   <p class="lead">Skriv in adressen till en webbplats så tar vi reda på det åt dig.
   Det tar bara några sekunder.</p>
@@ -92,7 +104,7 @@
   Vissa webbplatser döljer de här spåren. Om vi inte hittar något kan webbplatsen alltså ändå vara byggd i PHP.</p>
 
   <h2>Viktigt att veta</h2>
-  <p>PHP-koll tittar bara på det som webbplatsen visar för alla besökare. Vi försöker aldrig ta oss in,
+  <p>PHP-kollen tittar bara på det som webbplatsen visar för alla besökare. Vi försöker aldrig ta oss in,
   testar inga säkerhetshål och sparar inga resultat.</p>
   <p>Resultatet är en vägledning, inte en säkerhetsgranskning. Många webbplatser döljer vilken
   PHP-version de använder, och webbhotell kan laga säkerhetshål utan att versionsnumret ändras.
@@ -107,6 +119,8 @@
     <p class="small">Så här ser rutan ut:</p>
     <div class="php-check-widget"></div>
   </div>
+
+  <footer>phpkollen.se · Gratis och utan reklam · Vi sparar inte vilka webbplatser du kontrollerar.</footer>
 
   <script src="widget.js"></script>
   <script>
@@ -173,7 +187,7 @@
       try {
         data = await (await fetch('api/check?url=' + encodeURIComponent(url))).json();
       } catch {
-        data = { error: 'Tjänsten svarar inte. Kontrollera att PHP-koll fortfarande är igång.' };
+        data = { error: 'Tjänsten svarar inte. Försök igen om en stund.' };
       }
       $('btn').disabled = false;
 
