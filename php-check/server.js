@@ -23,6 +23,11 @@ const MIME = {
   '.css': 'text/css; charset=utf-8',
 };
 
+// Fel med text som kan visas för användaren som den är.
+function userError(message) {
+  return Object.assign(new Error(message), { userFacing: true });
+}
+
 function isPrivateAddress(ip) {
   if (net.isIPv4(ip)) {
     const [a, b] = ip.split('.').map(Number);
@@ -43,17 +48,20 @@ async function resolvePublic(hostname) {
   const addrs = net.isIP(host) ? [{ address: host, family: net.isIP(host) }]
     : await dns.lookup(host, { all: true });
   if (!addrs.length || addrs.some((a) => isPrivateAddress(a.address))) {
-    throw new Error('Adressen pekar på ett internt nät och får inte kontrolleras.');
+    throw userError('Den här adressen går inte att kontrollera.');
   }
   return addrs[0];
 }
 
 function normalizeUrl(input) {
   let raw = String(input || '').trim();
-  if (!raw) throw new Error('Ange en adress.');
+  if (!raw) throw userError('Skriv in adressen till en webbplats, till exempel wordpress.org.');
   if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
-  const url = new URL(raw);
-  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Endast http och https stöds.');
+  let url;
+  try { url = new URL(raw); } catch { url = null; }
+  if (!url || !['http:', 'https:'].includes(url.protocol) || !url.hostname.includes('.')) {
+    throw userError('Det där ser inte ut som en webbadress. Skriv till exempel wordpress.org.');
+  }
   return url;
 }
 
@@ -87,7 +95,7 @@ async function fetchOnce(url) {
       res.on('close', done);
       res.on('error', reject);
     });
-    req.on('timeout', () => req.destroy(new Error('Sidan svarade inte i tid.')));
+    req.on('timeout', () => req.destroy(Object.assign(new Error(), { code: 'ETIMEDOUT' })));
     req.on('error', reject);
   });
 }
@@ -107,6 +115,25 @@ async function check(input) {
   return { url: url.href, status: res.status, ...result };
 }
 
+// Gör om tekniska felkoder till något en vanlig användare förstår.
+function friendlyError(err) {
+  switch (err.code) {
+    case 'ENOTFOUND':
+    case 'EAI_AGAIN':
+      return 'Vi hittade ingen webbplats med den adressen. Kontrollera stavningen.';
+    case 'ETIMEDOUT':
+      return 'Webbplatsen svarade inte. Försök igen om en stund.';
+    case 'ECONNREFUSED':
+    case 'ECONNRESET':
+      return 'Webbplatsen gick inte att nå just nu. Försök igen om en stund.';
+  }
+  if (err.userFacing) return err.message;
+  if (/CERT|SSL|TLS/i.test(err.code || '')) {
+    return 'Webbplatsen har ett problem med sin säkra anslutning, så vi kunde inte läsa den.';
+  }
+  return 'Vi kunde inte läsa webbplatsen. Försök igen om en stund.';
+}
+
 function sendJson(res, code, data) {
   res.writeHead(code, {
     'Content-Type': 'application/json; charset=utf-8',
@@ -123,7 +150,7 @@ const server = http.createServer(async (req, res) => {
     try {
       sendJson(res, 200, await check(reqUrl.searchParams.get('url')));
     } catch (err) {
-      sendJson(res, 400, { error: err.message || 'Kunde inte hämta sidan.' });
+      sendJson(res, 400, { error: friendlyError(err) });
     }
     return;
   }
@@ -142,7 +169,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 if (require.main === module) {
-  server.listen(PORT, () => console.log(`PHP-koll körs på http://localhost:${PORT}`));
+  server.listen(PORT, () => console.log(`\nPHP-koll är igång! Öppna http://localhost:${PORT} i din webbläsare.\nStäng det här fönstret för att stänga av programmet.\n`));
 }
 
 module.exports = { check, isPrivateAddress };

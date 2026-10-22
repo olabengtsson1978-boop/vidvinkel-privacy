@@ -14,10 +14,10 @@
   var defaultApi = script ? new URL('.', script.src).href : '/';
 
   var LABELS = {
-    yes: { text: 'Byggd i PHP', color: '#1a7f37', bg: '#dafbe1' },
-    likely: { text: 'Troligen PHP', color: '#9a6700', bg: '#fff8c5' },
+    yes: { text: 'Ja, byggd i PHP', color: '#1a7f37', bg: '#dafbe1' },
+    likely: { text: 'Troligen byggd i PHP', color: '#8a5a00', bg: '#fff8c5' },
     no: { text: 'Inga tecken på PHP', color: '#57606a', bg: '#eaeef2' },
-    error: { text: 'Kunde inte kontrolleras', color: '#cf222e', bg: '#ffebe9' },
+    error: { text: 'Gick inte att kontrollera', color: '#cf222e', bg: '#ffebe9' },
   };
 
   var CSS =
@@ -31,8 +31,8 @@
     'button:disabled{opacity:.6;cursor:wait}' +
     '.result{margin-top:10px}' +
     '.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:600}' +
-    '.meta{color:#57606a;font-size:12px;margin-top:4px;word-break:break-all}' +
-    'ul{margin:6px 0 0;padding-left:18px;font-size:12px;color:#424a53}';
+    '.meta{color:#57606a;font-size:13px;margin-top:4px;word-break:break-all}' +
+    'ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:#424a53}';
 
   function el(tag, attrs, text) {
     var node = document.createElement(tag);
@@ -54,21 +54,24 @@
       target.appendChild(el('div', { class: 'meta' }, data.error));
       return;
     }
-    target.appendChild(el('div', { class: 'meta' },
-      data.url + ' · säkerhet ' + data.confidence + ' %'));
-    if (data.signals.length) {
+    target.appendChild(el('div', { class: 'meta' }, data.url));
+    if (data.reasons.length) {
       var list = el('ul');
-      data.signals.forEach(function (s) { list.appendChild(el('li', null, s)); });
+      data.reasons.forEach(function (r) { list.appendChild(el('li', null, r.text)); });
       target.appendChild(list);
     }
   }
 
   function check(api, url, target, button) {
+    if (!String(url).trim()) {
+      renderResult(target, { error: 'Skriv in adressen till en webbplats, till exempel wordpress.org.' });
+      return;
+    }
     target.textContent = 'Kontrollerar…';
     if (button) button.disabled = true;
     fetch(api + 'api/check?url=' + encodeURIComponent(url))
       .then(function (r) { return r.json(); })
-      .catch(function () { return { error: 'Kunde inte nå tjänsten.' }; })
+      .catch(function () { return { error: 'Tjänsten svarar inte just nu. Försök igen om en stund.' }; })
       .then(function (data) {
         renderResult(target, data);
         if (button) button.disabled = false;
@@ -94,8 +97,8 @@
       check(api, fixedUrl, result);
     } else {
       var form = el('form');
-      var input = el('input', { type: 'text', placeholder: 'example.com', 'aria-label': 'Webbadress', required: '' });
-      var button = el('button', { type: 'submit' }, 'Kolla');
+      var input = el('input', { type: 'text', inputmode: 'url', placeholder: 'till exempel wordpress.org', 'aria-label': 'Webbplatsens adress' });
+      var button = el('button', { type: 'submit' }, 'Kontrollera');
       form.appendChild(input);
       form.appendChild(button);
       form.addEventListener('submit', function (e) {

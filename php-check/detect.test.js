@@ -37,3 +37,11 @@ test('interna adresser blockeras', () => {
   }
   assert.ok(!isPrivateAddress('93.184.216.34'));
 });
+
+test('svaren förklaras på vanlig svenska utan dubbletter', () => {
+  const html = '<meta name="generator" content="WordPress 6.6"><img src="/wp-content/a.png">';
+  const r = run({ 'x-pingback': 'https://example.com/xmlrpc.php' }, html);
+  const wp = r.reasons.filter((x) => /WordPress/.test(x.text));
+  assert.strictEqual(wp.length, 1);
+  assert.strictEqual(wp[0].details.length, 3);
+});

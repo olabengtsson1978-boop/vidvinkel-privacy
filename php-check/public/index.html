@@ -5,109 +5,173 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PHP-koll</title>
   <style>
-    :root { --fg: #1f2328; --muted: #57606a; --line: #d0d7de; --accent: #777bb4; --bg: #f6f8fa; --card: #fff; }
+    :root { --fg: #1f2328; --muted: #57606a; --line: #d0d7de; --accent: #5b5fa8; --bg: #f6f8fa; --card: #fff;
+      --yes: #1a7f37; --yes-bg: #dafbe1; --likely: #8a5a00; --likely-bg: #fff8c5;
+      --no: #57606a; --no-bg: #eaeef2; --err: #cf222e; --err-bg: #ffebe9; }
     @media (prefers-color-scheme: dark) {
-      :root { --fg: #e6edf3; --muted: #9198a1; --line: #3d444d; --bg: #0d1117; --card: #151b23; }
+      :root { --fg: #e6edf3; --muted: #9198a1; --line: #3d444d; --bg: #0d1117; --card: #151b23; --accent: #8b8fd6;
+        --yes: #56d364; --yes-bg: #12261e; --likely: #e3b341; --likely-bg: #272115;
+        --no: #9198a1; --no-bg: #1c2128; --err: #ff7b72; --err-bg: #2d1517; }
     }
     * { box-sizing: border-box; }
     body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); background: var(--bg);
-      max-width: 720px; margin: 40px auto; padding: 0 16px; line-height: 1.6; }
-    h1 { font-size: 28px; margin-bottom: 4px; }
-    h1 span { background: var(--accent); color: #fff; border-radius: 6px; padding: 0 8px; font-size: 22px; }
-    h2 { font-size: 18px; margin-top: 36px; }
-    .lead { color: var(--muted); margin-top: 0; }
-    form { display: flex; gap: 8px; margin: 24px 0 16px; }
-    input { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid var(--line);
-      border-radius: 8px; background: var(--card); color: var(--fg); }
-    button { font: inherit; font-size: 16px; padding: 10px 18px; border: 0; border-radius: 8px;
+      max-width: 640px; margin: 40px auto; padding: 0 16px; line-height: 1.6; font-size: 17px; }
+    h1 { font-size: 32px; margin: 0 0 8px; }
+    h2 { font-size: 20px; margin-top: 40px; }
+    .lead { font-size: 19px; margin-top: 0; }
+    label { display: block; font-weight: 600; margin: 28px 0 6px; }
+    form { display: flex; gap: 8px; flex-wrap: wrap; }
+    input { flex: 1 1 240px; font: inherit; font-size: 18px; padding: 12px 14px; border: 2px solid var(--line);
+      border-radius: 10px; background: var(--card); color: var(--fg); }
+    input:focus { outline: none; border-color: var(--accent); }
+    button { font: inherit; font-size: 18px; font-weight: 600; padding: 12px 22px; border: 0; border-radius: 10px;
       background: var(--accent); color: #fff; cursor: pointer; }
     button:disabled { opacity: .6; cursor: wait; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
-    .verdict { font-size: 22px; font-weight: 700; margin: 0; }
-    .yes { color: #1a7f37; } .likely { color: #bf8700; } .no { color: var(--muted); } .error { color: #cf222e; }
-    .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 10px 0; }
-    .bar div { height: 100%; background: var(--accent); transition: width .4s; }
-    .meta { color: var(--muted); font-size: 14px; word-break: break-all; }
-    ul { padding-left: 20px; }
-    pre { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px;
-      overflow-x: auto; font-size: 13px; }
-    [hidden] { display: none; }
+    .examples { color: var(--muted); font-size: 15px; margin-top: 10px; }
+    .examples button { background: none; color: var(--accent); padding: 0 4px; font-size: 15px; font-weight: 400;
+      text-decoration: underline; }
+    .result { border-radius: 14px; padding: 20px 22px; margin-top: 24px; }
+    .result h3 { font-size: 24px; margin: 0 0 6px; }
+    .result p { margin: 0; }
+    .yes { background: var(--yes-bg); } .yes h3 { color: var(--yes); }
+    .likely { background: var(--likely-bg); } .likely h3 { color: var(--likely); }
+    .no { background: var(--no-bg); } .no h3 { color: var(--no); }
+    .error { background: var(--err-bg); } .error h3 { color: var(--err); }
+    .loading { background: var(--card); border: 1px solid var(--line); }
+    .result ul { margin: 12px 0 0; padding-left: 22px; }
+    details { margin-top: 12px; font-size: 14px; color: var(--muted); }
+    details code { word-break: break-all; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+    pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px;
+      overflow-x: auto; font-size: 13px; margin: 12px 0; white-space: pre-wrap; word-break: break-all; }
+    .small { font-size: 15px; color: var(--muted); }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
-  <h1><span>php</span> PHP-koll</h1>
-  <p class="lead">Ange en webbadress så kontrollerar vi om sidan är byggd i PHP.</p>
+  <h1>Är webbplatsen byggd i PHP?</h1>
+  <p class="lead">Skriv in adressen till en webbplats så tar vi reda på det åt dig.
+  Det tar bara några sekunder.</p>
 
+  <label for="url">Webbplatsens adress</label>
   <form id="form">
-    <input id="url" type="text" placeholder="t.ex. wordpress.org" aria-label="Webbadress" required autofocus>
+    <input id="url" type="text" inputmode="url" autocomplete="off" placeholder="till exempel wordpress.org" autofocus>
     <button id="btn" type="submit">Kontrollera</button>
   </form>
+  <p class="examples">Prova:
+    <button type="button" data-example="wordpress.org">wordpress.org</button>
+    <button type="button" data-example="wikipedia.org">wikipedia.org</button>
+    <button type="button" data-example="github.com">github.com</button>
+  </p>
 
-  <div id="out" class="card" hidden>
-    <p id="verdict" class="verdict"></p>
-    <div class="bar"><div id="bar" style="width:0"></div></div>
-    <div id="meta" class="meta"></div>
-    <ul id="signals"></ul>
+  <div id="out" class="result" hidden aria-live="polite">
+    <h3 id="title"></h3>
+    <p id="summary"></p>
+    <ul id="reasons"></ul>
+    <details id="tech" hidden>
+      <summary>Visa tekniska detaljer</summary>
+      <ul id="techlist"></ul>
+    </details>
   </div>
 
-  <h2>Hur fungerar det?</h2>
-  <p>Servern hämtar sidan och letar efter spår av PHP: <code>X-Powered-By</code>-huvudet,
-  PHP-cookies som <code>PHPSESSID</code> eller <code>laravel_session</code>, adresser som slutar på
-  <code>.php</code>, länkar till <code>.php</code>-filer och PHP-baserade publiceringssystem som
-  WordPress, Joomla och Drupal. Många sajter döljer sådana spår, så "inga tecken" betyder inte att
-  sidan garanterat saknar PHP.</p>
+  <h2>Vad är PHP?</h2>
+  <p>PHP är ett programspråk som många webbplatser är byggda med, ungefär som en motor under huven.
+  Bland annat WordPress, som driver en stor del av världens webbplatser, är gjort i PHP.</p>
 
-  <h2>Bädda in widgeten</h2>
-  <p>Klistra in på valfri sida:</p>
-  <pre id="snippet"></pre>
-  <p>Med <code>data-url</code> visas resultatet för en fast adress direkt:</p>
-  <pre id="snippet2"></pre>
-  <p>Så här ser den ut:</p>
-  <div class="php-check-widget"></div>
+  <h2>Hur vet ni det?</h2>
+  <p>Vi besöker webbplatsen, precis som en vanlig besökare, och letar efter spår som PHP brukar lämna efter sig.
+  Vissa webbplatser döljer de här spåren. Om vi inte hittar något kan webbplatsen alltså ändå vara byggd i PHP.</p>
+
+  <h2>Vill du ha rutan på din egen hemsida?</h2>
+  <div class="card">
+    <p style="margin-top:0">Kopiera koden nedan och klistra in den där du vill att rutan ska synas på din hemsida.
+    Vet du inte var? Skicka koden till den som sköter din hemsida.</p>
+    <pre id="snippet"></pre>
+    <button id="copy" type="button">Kopiera koden</button>
+    <p class="small">Så här ser rutan ut:</p>
+    <div class="php-check-widget"></div>
+  </div>
 
   <script src="widget.js"></script>
   <script>
-    const base = location.origin + location.pathname.replace(/[^/]*$/, '');
-    document.getElementById('snippet').textContent =
-      `<script src="${base}widget.js" defer><\/script>\n<div class="php-check-widget"></div>`;
-    document.getElementById('snippet2').textContent =
-      `<div class="php-check-widget" data-url="wordpress.org"></div>`;
-
-    const TEXT = { yes: 'Ja, sidan är byggd i PHP', likely: 'Troligen byggd i PHP',
-      no: 'Inga tecken på PHP hittades' };
     const $ = (id) => document.getElementById(id);
+    const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+    $('snippet').textContent =
+      `<script src="${base}widget.js" defer><\/script>\n<div class="php-check-widget"></div>`;
 
-    $('form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      $('btn').disabled = true;
-      $('out').hidden = false;
-      $('verdict').className = 'verdict';
-      $('verdict').textContent = 'Kontrollerar…';
-      $('meta').textContent = '';
-      $('signals').textContent = '';
-      $('bar').style.width = '0';
-      let data;
+    $('copy').addEventListener('click', async () => {
       try {
-        data = await (await fetch('api/check?url=' + encodeURIComponent($('url').value))).json();
+        await navigator.clipboard.writeText($('snippet').textContent);
+        $('copy').textContent = 'Kopierat!';
       } catch {
-        data = { error: 'Kunde inte nå tjänsten.' };
+        getSelection().selectAllChildren($('snippet'));
+        $('copy').textContent = 'Tryck Ctrl+C (eller ⌘+C) för att kopiera';
       }
-      $('btn').disabled = false;
-      if (data.error) {
-        $('verdict').className = 'verdict error';
-        $('verdict').textContent = data.error;
+      setTimeout(() => { $('copy').textContent = 'Kopiera koden'; }, 2500);
+    });
+
+    const VERDICT = {
+      yes: { title: 'Ja, den är byggd i PHP',
+        summary: 'Vi hittade tydliga tecken på att webbplatsen använder PHP.' },
+      likely: { title: 'Troligen byggd i PHP',
+        summary: 'Vi hittade vissa tecken på PHP, men kan inte vara helt säkra.' },
+      no: { title: 'Vi hittade inga tecken på PHP',
+        summary: 'Webbplatsen är troligen byggd med något annat. Den kan också dölja att den använder PHP.' },
+    };
+
+    function show(kind, title, summary) {
+      $('out').className = 'result ' + kind;
+      $('out').hidden = false;
+      $('title').textContent = title;
+      $('summary').textContent = summary;
+      $('reasons').textContent = '';
+      $('techlist').textContent = '';
+      $('tech').hidden = true;
+      $('tech').open = false;
+    }
+
+    function addItem(list, text) {
+      const li = document.createElement('li');
+      li.textContent = text;
+      list.appendChild(li);
+    }
+
+    async function check() {
+      const url = $('url').value.trim();
+      if (!url) {
+        show('error', 'Du behöver skriva en adress', 'Skriv in adressen till en webbplats, till exempel wordpress.org.');
+        $('url').focus();
         return;
       }
-      $('verdict').className = 'verdict ' + data.verdict;
-      $('verdict').textContent = TEXT[data.verdict];
-      $('bar').style.width = data.confidence + '%';
-      $('meta').textContent = `${data.url} · HTTP ${data.status} · säkerhet ${data.confidence} %`;
-      for (const s of data.signals) {
-        const li = document.createElement('li');
-        li.textContent = s;
-        $('signals').appendChild(li);
+      $('btn').disabled = true;
+      show('loading', 'Kontrollerar…', 'Vi besöker webbplatsen. Det brukar ta några sekunder.');
+      let data;
+      try {
+        data = await (await fetch('api/check?url=' + encodeURIComponent(url))).json();
+      } catch {
+        data = { error: 'Tjänsten svarar inte. Kontrollera att PHP-koll fortfarande är igång.' };
       }
-    });
+      $('btn').disabled = false;
+
+      if (data.error) {
+        show('error', 'Det gick inte att kontrollera', data.error);
+        return;
+      }
+      const v = VERDICT[data.verdict];
+      show(data.verdict, v.title, v.summary);
+      for (const r of data.reasons) {
+        addItem($('reasons'), r.text);
+        for (const d of r.details) addItem($('techlist'), d);
+      }
+      addItem($('techlist'), `Kontrollerad adress: ${data.url} (svarskod ${data.status})`);
+      $('tech').hidden = false;
+    }
+
+    $('form').addEventListener('submit', (e) => { e.preventDefault(); check(); });
+    document.querySelectorAll('[data-example]').forEach((b) => b.addEventListener('click', () => {
+      $('url').value = b.dataset.example;
+      check();
+    }));
   </script>
 </body>
 </html>

@@ -31,40 +31,41 @@ const PHP_COOKIES = [
 
 function detect({ headers, html, finalUrl }) {
   const signals = [];
-  const add = (weight, text) => signals.push({ weight, text });
+  // text: förklaring på vanlig svenska. detail: det tekniska spåret.
+  const add = (weight, text, detail) => signals.push({ weight, text, detail });
   const h = (name) => headers[name.toLowerCase()];
 
   const powered = [].concat(h('x-powered-by') || []).join(', ');
-  if (/php/i.test(powered)) add(100, `X-Powered-By: ${powered}`);
+  if (/php/i.test(powered)) add(100, 'Webbplatsen talar själv om att den använder PHP.', `X-Powered-By: ${powered}`);
 
   const server = [].concat(h('server') || []).join(', ');
-  if (/php/i.test(server)) add(80, `Server: ${server}`);
+  if (/php/i.test(server)) add(80, 'Servern som driver webbplatsen nämner PHP.', `Server: ${server}`);
 
   for (const cookie of [].concat(h('set-cookie') || [])) {
     const hit = PHP_COOKIES.find((c) => c.re.test(cookie.trim()));
-    if (hit) add(90, `Cookie: ${hit.name}`);
+    if (hit) add(90, 'Webbplatsen sparar en cookie som PHP-sajter brukar använda.', `Cookie: ${hit.name}`);
   }
 
   if (/\.php(\?|$)/i.test(new URL(finalUrl).pathname + '?')) {
-    add(90, `Adressen slutar på .php (${finalUrl})`);
+    add(90, 'Adressen till sidan slutar på .php, som är filändelsen för PHP.', finalUrl);
   }
 
   if (h('x-pingback') && /xmlrpc\.php/i.test(h('x-pingback'))) {
-    add(80, 'X-Pingback pekar på xmlrpc.php (WordPress)');
+    add(80, 'Webbplatsen är gjord med WordPress, som är byggt i PHP.', `X-Pingback: ${h('x-pingback')}`);
   }
   if (/wp-json/i.test([].concat(h('link') || []).join(' '))) {
-    add(70, 'Link-header till wp-json (WordPress)');
+    add(70, 'Webbplatsen är gjord med WordPress, som är byggt i PHP.', 'Link-header till wp-json');
   }
 
   const gen = /<meta[^>]+name=["']generator["'][^>]*content=["']([^"']+)["']/i.exec(html) ||
     /<meta[^>]+content=["']([^"']+)["'][^>]*name=["']generator["']/i.exec(html);
   if (gen) {
     const cms = PHP_CMS.find((c) => c.re.test(gen[1]));
-    if (cms) add(80, `Generator-tagg: ${gen[1]} (${cms.name} är byggt i PHP)`);
+    if (cms) add(80, `Webbplatsen är gjord med ${cms.name}, som är byggt i PHP.`, `<meta name="generator" content="${gen[1]}">`);
   }
 
   if (/\/wp-(content|includes)\//i.test(html)) {
-    add(70, 'Sökvägar till /wp-content/ eller /wp-includes/ (WordPress)');
+    add(70, 'Webbplatsen är gjord med WordPress, som är byggt i PHP.', 'Sökvägar till /wp-content/ eller /wp-includes/');
   }
 
   const phpLinks = new Set();
@@ -73,7 +74,7 @@ function detect({ headers, html, finalUrl }) {
   while ((m = linkRe.exec(html)) && phpLinks.size < 5) phpLinks.add(m[1]);
   if (phpLinks.size) {
     add(Math.min(30 + phpLinks.size * 10, 60),
-      `Länkar till .php-filer: ${[...phpLinks].join(', ')}`);
+      'Sidan länkar till andra sidor som slutar på .php.', [...phpLinks].join(', '));
   }
 
   const best = signals.reduce((max, s) => Math.max(max, s.weight), 0);
@@ -83,8 +84,15 @@ function detect({ headers, html, finalUrl }) {
   else if (confidence >= 40) verdict = 'likely';
   else verdict = 'no';
 
+  // Samma förklaring kan komma från flera spår; visa den en gång.
   signals.sort((a, b) => b.weight - a.weight);
-  return { verdict, confidence, signals: signals.map((s) => s.text) };
+  const reasons = [];
+  for (const s of signals) {
+    const same = reasons.find((r) => r.text === s.text);
+    if (same) same.details.push(s.detail);
+    else reasons.push({ text: s.text, details: [s.detail] });
+  }
+  return { verdict, confidence, reasons };
 }
 
 module.exports = { detect };
