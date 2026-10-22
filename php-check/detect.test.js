@@ -45,3 +45,23 @@ test('svaren förklaras på vanlig svenska utan dubbletter', () => {
   assert.strictEqual(wp.length, 1);
   assert.strictEqual(wp[0].details.length, 3);
 });
+
+const { versionStatus } = require('./version');
+const OCT_2026 = new Date('2026-10-22T12:00:00Z');
+
+test('versionen läses ut och bedöms', () => {
+  assert.strictEqual(run({ 'x-powered-by': 'PHP/8.3.12' }).php.version, '8.3.12');
+  assert.strictEqual(versionStatus('PHP/8.4.1', OCT_2026).status, 'ok');
+  assert.strictEqual(versionStatus('PHP/8.2.20', OCT_2026).status, 'soon');
+  assert.strictEqual(versionStatus('PHP/8.1.2', OCT_2026).status, 'eol');
+  assert.strictEqual(versionStatus('Apache/2.4.41 (Ubuntu) PHP/7.4.3', OCT_2026).status, 'eol');
+  assert.strictEqual(versionStatus('PHP/9.0.0', OCT_2026).status, 'ok');
+  assert.strictEqual(versionStatus('nginx', OCT_2026), null);
+});
+
+test('distributionernas egna säkerhetsuppdateringar nämns', () => {
+  const r = versionStatus('PHP/7.4.3-4ubuntu2.24', OCT_2026);
+  assert.ok(r.backported);
+  assert.match(r.message, /webbhotellet/i);
+  assert.ok(!versionStatus('PHP/7.4.33', OCT_2026).backported);
+});

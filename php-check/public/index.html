@@ -39,6 +39,12 @@
     .error { background: var(--err-bg); } .error h3 { color: var(--err); }
     .loading { background: var(--card); border: 1px solid var(--line); }
     .result ul { margin: 12px 0 0; padding-left: 22px; }
+    .version { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--card);
+      border-left: 5px solid var(--no); }
+    .version strong { display: block; }
+    .version.ok { border-left-color: var(--yes); } .version.soon { border-left-color: #d4a72c; }
+    .version.eol { border-left-color: var(--err); }
+    .note { font-size: 14px; color: var(--muted); margin-top: 12px !important; }
     details { margin-top: 12px; font-size: 14px; color: var(--muted); }
     details code { word-break: break-all; }
     .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
@@ -67,7 +73,10 @@
   <div id="out" class="result" hidden aria-live="polite">
     <h3 id="title"></h3>
     <p id="summary"></p>
+    <div id="version" class="version" hidden><strong id="vtitle"></strong><span id="vtext"></span></div>
     <ul id="reasons"></ul>
+    <p id="note" class="note" hidden>Kontrollen bygger på det webbplatsen själv visar utåt.
+    Ett bra resultat är ingen garanti för att webbplatsen är säker.</p>
     <details id="tech" hidden>
       <summary>Visa tekniska detaljer</summary>
       <ul id="techlist"></ul>
@@ -81,6 +90,13 @@
   <h2>Hur vet ni det?</h2>
   <p>Vi besöker webbplatsen, precis som en vanlig besökare, och letar efter spår som PHP brukar lämna efter sig.
   Vissa webbplatser döljer de här spåren. Om vi inte hittar något kan webbplatsen alltså ändå vara byggd i PHP.</p>
+
+  <h2>Viktigt att veta</h2>
+  <p>PHP-koll tittar bara på det som webbplatsen visar för alla besökare. Vi försöker aldrig ta oss in,
+  testar inga säkerhetshål och sparar inga resultat.</p>
+  <p>Resultatet är en vägledning, inte en säkerhetsgranskning. Många webbplatser döljer vilken
+  PHP-version de använder, och webbhotell kan laga säkerhetshål utan att versionsnumret ändras.
+  Är du osäker på din egen webbplats, fråga ditt webbhotell eller den som sköter sidan.</p>
 
   <h2>Vill du ha rutan på din egen hemsida?</h2>
   <div class="card">
@@ -119,6 +135,12 @@
         summary: 'Webbplatsen är troligen byggd med något annat. Den kan också dölja att den använder PHP.' },
     };
 
+    const VERSION_TITLE = {
+      ok: (v) => `PHP-version ${v}: uppdaterad`,
+      soon: (v) => `PHP-version ${v}: behöver uppdateras snart`,
+      eol: (v) => `PHP-version ${v}: föråldrad`,
+    };
+
     function show(kind, title, summary) {
       $('out').className = 'result ' + kind;
       $('out').hidden = false;
@@ -128,6 +150,8 @@
       $('techlist').textContent = '';
       $('tech').hidden = true;
       $('tech').open = false;
+      $('version').hidden = true;
+      $('note').hidden = true;
     }
 
     function addItem(list, text) {
@@ -163,6 +187,19 @@
         addItem($('reasons'), r.text);
         for (const d of r.details) addItem($('techlist'), d);
       }
+      if (data.php) {
+        $('version').className = 'version ' + data.php.status;
+        $('vtitle').textContent = VERSION_TITLE[data.php.status](data.php.version);
+        $('vtext').textContent = data.php.message;
+        $('version').hidden = false;
+      } else if (data.verdict !== 'no') {
+        $('version').className = 'version';
+        $('vtitle').textContent = 'PHP-versionen är dold';
+        $('vtext').textContent = 'Webbplatsen visar inte vilken version den använder. Det är bra för säkerheten, ' +
+          'men betyder att vi inte kan säga om den är uppdaterad.';
+        $('version').hidden = false;
+      }
+      $('note').hidden = false;
       addItem($('techlist'), `Kontrollerad adress: ${data.url} (svarskod ${data.status})`);
       $('tech').hidden = false;
     }

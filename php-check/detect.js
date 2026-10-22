@@ -1,5 +1,7 @@
 'use strict';
 
+const { versionStatus } = require('./version');
+
 // Ren analysfunktion: tar emot svarshuvuden och HTML och returnerar
 // en bedömning av om sidan är byggd i PHP.
 
@@ -92,7 +94,7 @@ function detect({ headers, html, finalUrl }) {
     if (same) same.details.push(s.detail);
     else reasons.push({ text: s.text, details: [s.detail] });
   }
-  return { verdict, confidence, reasons };
+  return { verdict, confidence, reasons, php: versionStatus(`${powered} ${server}`) };
 }
 
 module.exports = { detect };

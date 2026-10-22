@@ -20,6 +20,12 @@
     error: { text: 'Gick inte att kontrollera', color: '#cf222e', bg: '#ffebe9' },
   };
 
+  var VERSION = {
+    ok: { text: 'uppdaterad', color: '#1a7f37' },
+    soon: { text: 'behöver uppdateras snart', color: '#d4a72c' },
+    eol: { text: 'föråldrad', color: '#cf222e' },
+  };
+
   var CSS =
     ':host{all:initial;display:block;font:14px/1.45 -apple-system,"Segoe UI",Roboto,sans-serif;color:#1f2328}' +
     '.box{border:1px solid #d0d7de;border-radius:10px;padding:12px 14px;background:#fff;max-width:420px}' +
@@ -32,6 +38,7 @@
     '.result{margin-top:10px}' +
     '.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:600}' +
     '.meta{color:#57606a;font-size:13px;margin-top:4px;word-break:break-all}' +
+    '.version{margin-top:8px;padding:4px 8px;border-left:4px solid;background:#f6f8fa;font-weight:600}' +
     'ul{margin:6px 0 0;padding-left:18px;font-size:13px;color:#424a53}';
 
   function el(tag, attrs, text) {
@@ -55,6 +62,13 @@
       return;
     }
     target.appendChild(el('div', { class: 'meta' }, data.url));
+    if (data.php) {
+      var v = VERSION[data.php.status];
+      var row = el('div', { class: 'version' }, 'PHP ' + data.php.version + ': ' + v.text);
+      row.style.borderLeftColor = v.color;
+      target.appendChild(row);
+      target.appendChild(el('div', { class: 'meta' }, data.php.message));
+    }
     if (data.reasons.length) {
       var list = el('ul');
       data.reasons.forEach(function (r) { list.appendChild(el('li', null, r.text)); });

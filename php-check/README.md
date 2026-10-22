@@ -26,6 +26,9 @@ använder PHP-koll och stäng det när du är klar.
 | **Troligen byggd i PHP** | Vi hittade vissa tecken, men kan inte vara helt säkra. |
 | **Vi hittade inga tecken på PHP** | Troligen byggd med något annat, men den kan också dölja att den använder PHP. |
 
+Visar webbplatsen vilken PHP-version den använder får du också veta om versionen är
+**uppdaterad**, **behöver uppdateras snart** eller är **föråldrad** (får inga säkerhetsuppdateringar längre).
+
 Under svaret står varför vi kom fram till det. Den som vill kan klicka på
 **Visa tekniska detaljer** för att se exakt vad som hittades.
 
@@ -58,9 +61,16 @@ Kräver Node 18+, inga beroenden.
   "confidence": 100,
   "reasons": [
     { "text": "Webbplatsen talar själv om att den använder PHP.", "details": ["X-Powered-By: PHP/8.2.1"] }
-  ]
+  ],
+  "php": {
+    "version": "8.1.2", "branch": "8.1", "status": "ok | soon | eol",
+    "securityEnds": "2025-12-31", "backported": false, "message": "<förklaring>"
+  }
 }
 ```
+
+`php` är `null` om versionen inte syns. Datumen för när versionerna slutar underhållas ligger i
+`version.js` och behöver uppdateras när nya PHP-versioner släpps (se php.net/supported-versions.php).
 
 Vid fel: HTTP 400 med `{ "error": "<begriplig förklaring>" }`.
 
