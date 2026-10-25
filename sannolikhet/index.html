@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Oddsresonemang</title>
+  <style>
+    :root {
+      --bg: #fbfaf7; --fg: #1f2328; --muted: #6b7078; --line: #e3e1db;
+      --card: #ffffff; --accent: #2f6f5e; --accent-fg: #ffffff; --warn: #a3471f;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #16181b; --fg: #e8e6e1; --muted: #9a9ea5; --line: #2c3035;
+        --card: #1e2125; --accent: #6fbfa6; --accent-fg: #0f1412; --warn: #e48a62;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg);
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.6; }
+    main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-size: 26px; margin: 0 0 4px; }
+    .lead { color: var(--muted); margin: 0 0 24px; }
+    form { display: grid; gap: 10px; }
+    textarea, input { width: 100%; font: inherit; color: var(--fg); background: var(--card);
+      border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+    textarea { min-height: 96px; resize: vertical; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    button { font: inherit; border: 0; border-radius: 8px; padding: 10px 18px; cursor: pointer;
+      background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+    button[disabled] { opacity: .5; cursor: default; }
+    button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-weight: 400; }
+    .examples { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 0; }
+    .examples button { background: var(--card); color: var(--fg); border: 1px solid var(--line);
+      font-weight: 400; font-size: 14px; padding: 6px 10px; }
+    details { margin-top: 18px; color: var(--muted); font-size: 14px; }
+    details label { display: block; margin: 8px 0 4px; }
+    .status { color: var(--muted); font-size: 14px; min-height: 1.6em; margin: 20px 0 0; }
+    .status.error { color: var(--warn); }
+    #answer { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+      padding: 18px 20px; margin-top: 12px; overflow-wrap: anywhere; }
+    #answer:empty { display: none; }
+    #answer p { margin: 0 0 12px; }
+    #answer ul { margin: 0 0 12px; padding-left: 20px; }
+    #answer li { margin-bottom: 8px; }
+    #answer a { color: var(--accent); }
+    #sources { font-size: 14px; color: var(--muted); margin-top: 12px; }
+    #sources ol { padding-left: 20px; margin: 4px 0 0; }
+    #sources a { color: var(--accent); }
+    footer { margin-top: 40px; font-size: 13px; color: var(--muted); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Oddsresonemang</h1>
+  <p class="lead">Ställ en fråga om sannolikhet, risk eller konsekvens. Du får en uppskattning
+    med intervall, källor och ett resonemang om varför oddsen ser ut som de gör.</p>
+
+  <form id="ask">
+    <textarea id="question" required
+      placeholder="T.ex. Hur stor är risken att det regnar i Halmstad mellan 12 och 13 en vinterdag?"></textarea>
+    <div class="examples" id="examples">
+      <button type="button">Hur stor är risken att bli sjuk av en vinterkräksjuka en given vinter?</button>
+      <button type="button">Vad är sannolikheten att ett tåg Stockholm–Göteborg blir mer än 15 minuter försenat?</button>
+      <button type="button">Vilken är risken och konsekvensen av att köra med sommardäck i januari i Norrland?</button>
+    </div>
+    <div class="row">
+      <button type="submit" id="submit">Resonera</button>
+      <button type="button" class="ghost" id="stop" hidden>Avbryt</button>
+    </div>
+
+    <details id="settings">
+      <summary>Inställningar (API-nyckel)</summary>
+      <label for="apikey">Anthropic API-nyckel</label>
+      <input id="apikey" type="password" autocomplete="off" placeholder="sk-ant-…">
+      <label><input id="remember" type="checkbox" style="width:auto"> Kom ihåg nyckeln i den här webbläsaren</label>
+      <p>Nyckeln skickas endast direkt till api.anthropic.com från din webbläsare.
+        Den sparas bara om du kryssar i rutan ovan.</p>
+    </details>
+  </form>
+
+  <p class="status" id="status" role="status"></p>
+  <div id="answer" aria-live="polite"></div>
+  <div id="sources"></div>
+
+  <footer>Uppskattningarna bygger på offentliga källor och statistiskt resonemang – de är inte
+    garantier. Kontrollera källorna när beslutet spelar roll.</footer>
+</main>
+
+<script type="module">
+  import Anthropic from "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.133.0/+esm";
+
+  const MODEL = "claude-opus-5-5";
+  const KEY_STORAGE = "oddsresonemang.apikey";
+
+  const SYSTEM_PROMPT = `Du är en analytiker som svarar på svenska på frågor om sannolikhet, risk och konsekvens.
+
+Använd webbsökning för att hitta aktuell statistik, klimatdata, olycksstatistik, forskning eller officiella källor (t.ex. SMHI, SCB, Folkhälsomyndigheten, Trafikverket, MSB) innan du svarar. Basera siffrorna på det du hittar och resonera dig fram när exakta data saknas.
+
+Svara alltid i denna struktur, som löpande text utan rubriker:
+
+1. Inled med ett direkt svar: den efterfrågade sannolikheten eller risken som ett rimligt intervall i procent (t.ex. "runt 15 till 20 procent"), formulerat så att det upprepar frågans villkor (plats, tidpunkt, period).
+2. Ge sedan basfrekvensen eller den bredare bilden som siffran härleds ur (t.ex. antal dagar per månad, årlig frekvens) och förklara kort hur du går från den till det specifika fallet. Ange källor direkt efter påståendet i formen [1] (URL), [2] (URL) och numrera dem löpande.
+3. Skriv en rad i stil med "Här är varför oddsen ser ut som de gör …" följt av 3–4 punkter som börjar med "• " och en kort fetstilt etikett med kolon (t.ex. "• **Tidpunkten:** …"). Punkterna förklarar de faktorer som driver sannolikheten upp eller ner: geografi, tidpunkt, säsong, beteende, mekanismer, variation mellan delgrupper. Ange källa på punkterna där det går.
+4. När frågan gäller risk eller konsekvens: beskriv även vad som händer om utfallet inträffar (hur allvarligt, hur vanligt med allvarliga utfall) och väg samman sannolikhet och konsekvens till en samlad bedömning.
+5. Avsluta med "Kort sagt:" och en mening som vänder på siffran (chansen att slippa utfallet) och sätter den i relation till en jämförelse som gör den begriplig.
+
+Var ärlig med osäkerhet: ange intervall snarare än falsk precision, och säg till om underlaget är tunt. Hitta aldrig på källor eller siffror; om du inte hittar data, säg det och förklara hur du uppskattar ändå.`;
+
+  const $ = (id) => document.getElementById(id);
+  const form = $("ask"), questionEl = $("question"), keyEl = $("apikey"), rememberEl = $("remember");
+  const statusEl = $("status"), answerEl = $("answer"), sourcesEl = $("sources");
+  const submitBtn = $("submit"), stopBtn = $("stop");
+  let activeStream = null;
+
+  try {
+    const saved = localStorage.getItem(KEY_STORAGE);
+    if (saved) { keyEl.value = saved; rememberEl.checked = true; }
+  } catch {}
+  if (!keyEl.value) $("settings").open = true;
+
+  $("examples").addEventListener("click", (e) => {
+    if (e.target.tagName === "BUTTON") { questionEl.value = e.target.textContent; questionEl.focus(); }
+  });
+
+  function setStatus(text, isError = false) {
+    statusEl.textContent = text;
+    statusEl.classList.toggle("error", isError);
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function safeUrl(url) {
+    return /^https?:\/\//i.test(url) ? url : null;
+  }
+
+  function inline(text) {
+    let s = escapeHtml(text);
+    // [1] (https://…) – the reference style the answer is asked to use
+    s = s.replace(/\[(\d+)\]\s*\((https?:\/\/[^\s)]+)\)/g, (m, n, url) =>
+      safeUrl(url) ? `<a href="${url}" target="_blank" rel="noopener">[${n}]</a>` : m);
+    // [text](https://…)
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, label, url) =>
+      safeUrl(url) ? `<a href="${url}" target="_blank" rel="noopener">${label}</a>` : m);
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    return s;
+  }
+
+  function renderMarkdown(text) {
+    const out = [];
+    let list = null;
+    for (const raw of text.split(/\n/)) {
+      const line = raw.trim();
+      const bullet = line.match(/^(?:[•*-])\s+(.*)$/);
+      if (bullet) {
+        if (!list) { list = []; }
+        list.push(`<li>${inline(bullet[1])}</li>`);
+        continue;
+      }
+      if (list) { out.push(`<ul>${list.join("")}</ul>`); list = null; }
+      if (line) out.push(`<p>${inline(line.replace(/^#+\s*/, ""))}</p>`);
+    }
+    if (list) out.push(`<ul>${list.join("")}</ul>`);
+    return out.join("");
+  }
+
+  function renderSources(content) {
+    const seen = new Map();
+    for (const block of content) {
+      if (block.type !== "text" || !block.citations) continue;
+      for (const c of block.citations) {
+        if (c.url && safeUrl(c.url) && !seen.has(c.url)) seen.set(c.url, c.title || c.url);
+      }
+    }
+    if (!seen.size) { sourcesEl.innerHTML = ""; return; }
+    const items = [...seen].map(([url, title]) =>
+      `<li><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(title)}</a></li>`);
+    sourcesEl.innerHTML = `Källor som citerades:<ol>${items.join("")}</ol>`;
+  }
+
+  function textOf(content) {
+    return content.filter((b) => b.type === "text").map((b) => b.text).join("");
+  }
+
+  async function ask(question, apiKey) {
+    const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+    const messages = [{ role: "user", content: question }];
+    let shown = "";
+
+    // A web-search turn can stop with pause_turn; send the partial turn back to let it continue.
+    for (let round = 0; round < 5; round++) {
+      activeStream = client.beta.messages.stream({
+        model: MODEL,
+        max_tokens: 16000,
+        betas: ["server-side-fallback-2026-07-01"],
+        fallbacks: "default",
+        thinking: { type: "adaptive" },
+        output_config: { effort: "medium" },
+        system: SYSTEM_PROMPT,
+        tools: [{
+          type: "web_search_20260209",
+          name: "web_search",
+          max_uses: 6,
+          user_location: { type: "approximate", country: "SE", timezone: "Europe/Stockholm" },
+        }],
+        messages,
+      });
+
+      const prefix = shown;
+      let live = "";
+      activeStream.on("streamEvent", (event) => {
+        if (event.type === "content_block_start" && event.content_block.type === "server_tool_use") {
+          const q = event.content_block.input?.query;
+          setStatus(q ? `Söker: ${q}` : "Söker källor …");
+        }
+      });
+      activeStream.on("text", (delta) => {
+        live += delta;
+        setStatus("Resonerar …");
+        answerEl.innerHTML = renderMarkdown(prefix + live);
+      });
+
+      const message = await activeStream.finalMessage();
+      if (message.stop_reason === "refusal") {
+        throw new Error("Frågan kunde inte besvaras.");
+      }
+      shown = prefix + textOf(message.content);
+      answerEl.innerHTML = renderMarkdown(shown);
+      renderSources(message.content);
+
+      if (message.stop_reason !== "pause_turn") {
+        if (message.stop_reason === "max_tokens") setStatus("Svaret blev för långt och kapades.", true);
+        else setStatus("");
+        return;
+      }
+      messages.push({ role: "assistant", content: message.content });
+    }
+    setStatus("Sökningen tog för lång tid – svaret kan vara ofullständigt.", true);
+  }
+
+  function describeError(err) {
+    if (err instanceof Anthropic.AuthenticationError) return "API-nyckeln godkändes inte.";
+    if (err instanceof Anthropic.RateLimitError) return "För många förfrågningar just nu – försök igen om en stund.";
+    if (err instanceof Anthropic.APIUserAbortError) return "Avbrutet.";
+    if (err instanceof Anthropic.APIConnectionError) return "Kunde inte nå api.anthropic.com.";
+    if (err instanceof Anthropic.APIError) return `Fel från API:t: ${err.message}`;
+    return err.message || String(err);
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const question = questionEl.value.trim();
+    const apiKey = keyEl.value.trim();
+    if (!question) return;
+    if (!apiKey) { $("settings").open = true; keyEl.focus(); setStatus("Ange din API-nyckel först.", true); return; }
+
+    try {
+      if (rememberEl.checked) localStorage.setItem(KEY_STORAGE, apiKey);
+      else localStorage.removeItem(KEY_STORAGE);
+    } catch {}
+
+    answerEl.innerHTML = ""; sourcesEl.innerHTML = "";
+    submitBtn.disabled = true; stopBtn.hidden = false;
+    setStatus("Tänker …");
+    try {
+      await ask(question, apiKey);
+    } catch (err) {
+      setStatus(describeError(err), true);
+    } finally {
+      activeStream = null;
+      submitBtn.disabled = false; stopBtn.hidden = true;
+    }
+  });
+
+  stopBtn.addEventListener("click", () => activeStream?.abort());
+</script>
+</body>
+</html>
