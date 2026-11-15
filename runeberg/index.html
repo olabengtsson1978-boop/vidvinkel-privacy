@@ -1,9 +1,4 @@
-<!doctype html>
-<html lang="sv">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Runeberg – Skattkammaren</title>
+<title>Runebergs skattkammare</title>
 <meta name="description" content="Konceptförslag till ny landningssida för Projekt Runeberg – fria elektroniska utgåvor av nordisk litteratur.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,14 +15,14 @@
     --paper:#17130f; --paper-2:#1f1a14; --card:#241e17;
     --ink:#f1e8d8; --ink-2:#c4b7a3; --ink-3:#8f8372;
     --accent:#e08a63; --accent-2:#f0a37f; --gold:#d6b46a;
-    --line:#3a3127; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+    --line:#3a3127; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --paper:#17130f; --paper-2:#1f1a14; --card:#241e17;
   --ink:#f1e8d8; --ink-2:#c4b7a3; --ink-3:#8f8372;
   --accent:#e08a63; --accent-2:#f0a37f; --gold:#d6b46a;
-  --line:#3a3127; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+  --line:#3a3127; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -38,7 +33,7 @@ a{color:var(--accent);text-underline-offset:3px}
 @media (max-width:600px){.wrap{padding:0 16px}}
 
 /* Header */
-header.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:Fraunces,serif;font-weight:600;font-size:20px}
 .brand svg{width:26px;height:26px;color:var(--accent)}
@@ -61,12 +56,12 @@ nav.links a:hover{color:var(--accent)}
 .search{display:flex;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px;box-shadow:var(--shadow);max-width:680px}
 .search input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:18px;padding:12px 14px;outline:none}
 .search input::placeholder{color:var(--ink-3)}
-.search button{border:0;background:var(--accent);color:#fff;font:600 16px Inter,sans-serif;border-radius:10px;padding:0 22px;cursor:pointer}
-:root[data-theme="dark"] .search button{color:#1a120c}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .search button{color:#1a120c}}
+.search .sbtn{display:grid;place-items:center;text-decoration:none;border:0;background:var(--accent);color:#fff;font:600 16px Inter,sans-serif;border-radius:10px;padding:0 22px;cursor:pointer}
+:root[data-theme="dark"] .search .sbtn{color:#1a120c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .search .sbtn{color:#1a120c}}
 .search:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;font-size:14px;color:var(--ink-3);align-items:center}
-.chip{border:1px solid var(--line);background:transparent;color:var(--ink-2);border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit;font-size:14px}
+.chip{text-decoration:none;border:1px solid var(--line);background:transparent;color:var(--ink-2);border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit;font-size:14px}
 .chip:hover{border-color:var(--accent);color:var(--accent)}
 
 /* Section */
@@ -133,17 +128,18 @@ section{padding:72px 0}
 
 footer{padding:48px 0 64px;color:var(--ink-3);font-size:14px;border-top:1px solid var(--line);margin-top:72px}
 footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.concept{background:var(--ink);color:var(--paper);text-align:center;font-size:13px;padding:8px 16px}
+.concept a{color:var(--gold)}
 .note{font-size:13px;color:var(--ink-3)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
-</head>
-<body>
 
+<div class="concept">Konceptförslag till ny landningssida för <a href="https://runeberg.org/">runeberg.org</a> – inte projektets officiella sida.</div>
 <header class="top">
   <div class="wrap">
     <a class="brand" href="https://runeberg.org/">
       <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7c4-1.5 8-1.5 12 1v18c-4-2.5-8-2.5-12-1z"/><path d="M28 7c-4-1.5-8-1.5-12 1v18c4-2.5 8-2.5 12-1z"/></svg>
-      Projekt Runeberg
+      Runeberg <span style="font:500 12px Inter,sans-serif;color:var(--ink-3);border:1px solid var(--line);border-radius:999px;padding:2px 8px">koncept</span>
     </a>
     <nav class="links" aria-label="Huvudmeny">
       <a href="#upptack">Upptäck</a>
@@ -167,15 +163,15 @@ footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
       <form class="search" id="searchForm" role="search">
         <label for="q" class="sr" style="position:absolute;left:-9999px">Sök i samlingarna</label>
         <input id="q" name="q" type="search" placeholder="Sök författare, verk eller ett ord du undrar över…" autocomplete="off">
-        <button type="submit">Sök</button>
+        <a class="sbtn" id="sbtn" href="https://runeberg.org/" target="_blank" rel="noopener">Sök</a>
       </form>
       <div class="chips">
         <span>Prova:</span>
-        <button class="chip" data-q="Selma Lagerlöf">Selma Lagerlöf</button>
-        <button class="chip" data-q="Nordisk familjebok">Nordisk familjebok</button>
-        <button class="chip" data-q="Bellman">Bellman</button>
-        <button class="chip" data-q="kokbok">gamla kokböcker</button>
-        <button class="chip" data-q="Strindberg">Strindberg</button>
+        <a class="chip" data-q="Selma Lagerlöf" href="#">Selma Lagerlöf</a>
+        <a class="chip" data-q="Nordisk familjebok" href="#">Nordisk familjebok</a>
+        <a class="chip" data-q="Bellman" href="#">Bellman</a>
+        <a class="chip" data-q="kokbok" href="#">gamla kokböcker</a>
+        <a class="chip" data-q="Strindberg" href="#">Strindberg</a>
       </div>
     </div>
   </section>
@@ -333,9 +329,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
 
   // Search: site search on runeberg.org via a web search engine
   function searchUrl(q){return 'https://www.google.com/search?q='+encodeURIComponent('site:runeberg.org '+q);}
-  function go(q){ if(q.trim()) window.open(searchUrl(q),'_blank','noopener'); }
-  document.getElementById('searchForm').addEventListener('submit',function(e){e.preventDefault();go(document.getElementById('q').value);});
-  document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){document.getElementById('q').value=c.dataset.q;go(c.dataset.q);});});
+  var qi=document.getElementById('q'), sb=document.getElementById('sbtn');
+  function sync(){ sb.href=qi.value.trim()?searchUrl(qi.value):'https://runeberg.org/'; }
+  qi.addEventListener('input',sync);
+  document.getElementById('searchForm').addEventListener('submit',function(e){e.preventDefault();sync();sb.click();});
+  document.querySelectorAll('.chip').forEach(function(c){c.href=searchUrl(c.dataset.q);c.target='_blank';c.rel='noopener';});
   document.querySelectorAll('[data-search]').forEach(function(a){a.href=searchUrl(a.dataset.search);a.target='_blank';a.rel='noopener';});
 
   // Opening lines
@@ -387,5 +385,3 @@ footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
   });
 })();
 </script>
-</body>
-</html>
