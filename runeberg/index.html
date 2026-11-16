@@ -56,7 +56,7 @@ nav.links a:hover{color:var(--accent)}
 .search{display:flex;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px;box-shadow:var(--shadow);max-width:680px}
 .search input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:18px;padding:12px 14px;outline:none}
 .search input::placeholder{color:var(--ink-3)}
-.search .sbtn{display:grid;place-items:center;text-decoration:none;border:0;background:var(--accent);color:#fff;font:600 16px Inter,sans-serif;border-radius:10px;padding:0 22px;cursor:pointer}
+.search .sbtn{display:grid;place-items:center;border:0;background:var(--accent);color:#fff;font:600 16px Inter,sans-serif;border-radius:10px;padding:0 22px;cursor:pointer}
 :root[data-theme="dark"] .search .sbtn{color:#1a120c}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .search .sbtn{color:#1a120c}}
 .search:focus-within{outline:2px solid var(--accent);outline-offset:2px}
@@ -130,6 +130,29 @@ footer{padding:48px 0 64px;color:var(--ink-3);font-size:14px;border-top:1px soli
 footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .concept{background:var(--ink);color:var(--paper);text-align:center;font-size:13px;padding:8px 16px}
 .concept a{color:var(--gold)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.results{margin-top:28px;max-width:960px}
+.r-idle{color:var(--ink-3);font-size:14px;margin:0}
+.r-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.tabs{display:flex;gap:4px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:4px}
+.tab{border:0;background:transparent;color:var(--ink-2);font:500 14px Inter,sans-serif;padding:6px 14px;border-radius:999px;cursor:pointer}
+.tab span{font-variant-numeric:tabular-nums;color:var(--ink-3);margin-left:4px}
+.tab[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.lang{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2)}
+.lang select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.cards{grid-template-columns:1fr}}
+.kort{position:relative;display:grid;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:14px 18px 22px;text-decoration:none;color:var(--ink);
+  background-image:linear-gradient(transparent 33px,color-mix(in srgb,var(--accent) 35%,transparent) 33px,color-mix(in srgb,var(--accent) 35%,transparent) 34px,transparent 34px);transition:transform .15s,border-color .15s}
+.kort:hover,.kort:focus-visible{transform:translateY(-2px);border-color:var(--accent)}
+.kort::after{content:"";position:absolute;left:50%;bottom:7px;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:var(--paper);border:1px solid var(--line)}
+.kort .sig{display:flex;justify-content:space-between;gap:8px;font:500 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-3);letter-spacing:.04em;height:22px}
+.kort .ti{font-family:Fraunces,Georgia,serif;font-size:18px;line-height:1.25;margin-top:6px;overflow-wrap:anywhere}
+.kort .au{font-size:14px;color:var(--ink-2)}
+.kort mark{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;border-radius:2px}
+.r-empty{grid-column:1/-1;color:var(--ink-2);background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:18px}
+.r-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+.fulltext{font-size:14px;font-weight:600}
 .note{font-size:13px;color:var(--ink-3)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
@@ -161,17 +184,41 @@ footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
       <h1>Ett bibliotek som <em>aldrig</em> stänger.</h1>
       <p class="lead">Romaner, psalmer, uppslagsverk, kokböcker, reseskildringar och tidskrifter – inskannade, korrekturlästa och fritt tillgängliga för alla. Byggt av frivilliga, sida för sida.</p>
       <form class="search" id="searchForm" role="search">
-        <label for="q" class="sr" style="position:absolute;left:-9999px">Sök i samlingarna</label>
-        <input id="q" name="q" type="search" placeholder="Sök författare, verk eller ett ord du undrar över…" autocomplete="off">
-        <a class="sbtn" id="sbtn" href="https://runeberg.org/" target="_blank" rel="noopener">Sök</a>
+        <label for="q" class="sr">Sök i katalogen</label>
+        <input id="q" name="q" type="search" placeholder="Sök bland verk och författare…" autocomplete="off">
+        <button type="submit" class="sbtn">Sök</button>
       </form>
       <div class="chips">
         <span>Prova:</span>
-        <a class="chip" data-q="Selma Lagerlöf" href="#">Selma Lagerlöf</a>
-        <a class="chip" data-q="Nordisk familjebok" href="#">Nordisk familjebok</a>
-        <a class="chip" data-q="Bellman" href="#">Bellman</a>
-        <a class="chip" data-q="kokbok" href="#">gamla kokböcker</a>
-        <a class="chip" data-q="Strindberg" href="#">Strindberg</a>
+        <button type="button" class="chip" data-q="Lagerlöf">Selma Lagerlöf</button>
+        <button type="button" class="chip" data-q="familjebok">Nordisk familjebok</button>
+        <button type="button" class="chip" data-q="Bellman">Bellman</button>
+        <button type="button" class="chip" data-q="kokbok">gamla kokböcker</button>
+        <button type="button" class="chip" data-q="Strindberg">Strindberg</button>
+      </div>
+
+      <div class="results" id="results" aria-live="polite">
+        <p class="r-idle" id="rIdle">Katalogen laddas…</p>
+        <div class="r-body" id="rBody" hidden>
+          <div class="r-bar">
+            <div class="tabs" role="tablist">
+              <button type="button" role="tab" class="tab" id="tabT" aria-selected="true">Verk <span id="nT">0</span></button>
+              <button type="button" role="tab" class="tab" id="tabA" aria-selected="false">Författare <span id="nA">0</span></button>
+            </div>
+            <label class="lang"><span>Språk</span>
+              <select id="lang">
+                <option value="">Alla</option><option value="sv">Svenska</option><option value="da">Danska</option>
+                <option value="no">Norska</option><option value="fi">Finska</option><option value="is">Isländska</option>
+                <option value="de">Tyska</option><option value="en">Engelska</option>
+              </select>
+            </label>
+          </div>
+          <div class="cards" id="cards"></div>
+          <div class="r-foot">
+            <button type="button" class="btn" id="more" hidden>Visa fler</button>
+            <a class="fulltext" id="fulltext" href="https://runeberg.org/search.pl" target="_blank" rel="noopener">Hittar du inte? Sök i texterna på runeberg.org →</a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -223,7 +270,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
           <p>Från Almqvist till Lagerlöf – möt rösterna bakom texterna.</p>
           <div class="go">Bläddra A–Ö →</div>
         </a>
-        <a class="room" href="https://runeberg.org/titles/">
+        <a class="room" href="https://runeberg.org/katalog.html">
           <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16 5l3.8-1 3 15-3.8 1z"/></svg></div>
           <h3>Alla verk</h3>
           <p>Hela katalogen, titel för titel. Gott om plats för oväntade fynd.</p>
@@ -327,25 +374,110 @@ footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
     try{localStorage.setItem(KEY,nx);}catch(e){}
   });
 
-  // Search: site search on runeberg.org via a web search engine
-  function searchUrl(q){return 'https://www.google.com/search?q='+encodeURIComponent('site:runeberg.org '+q);}
-  var qi=document.getElementById('q'), sb=document.getElementById('sbtn');
-  function sync(){ sb.href=qi.value.trim()?searchUrl(qi.value):'https://runeberg.org/'; }
-  qi.addEventListener('input',sync);
-  document.getElementById('searchForm').addEventListener('submit',function(e){e.preventDefault();sync();sb.click();});
-  document.querySelectorAll('.chip').forEach(function(c){c.href=searchUrl(c.dataset.q);c.target='_blank';c.rel='noopener';});
+  // Full-text search on runeberg.org (its own search)
+  var RB='https://runeberg.org/';
+  function searchUrl(q){return RB+'search.pl?q='+encodeURIComponent(q);}
+  function workUrl(k){return RB+k+'/';}
   document.querySelectorAll('[data-search]').forEach(function(a){a.href=searchUrl(a.dataset.search);a.target='_blank';a.rel='noopener';});
+
+  // Catalog search, baked in from Runeberg's open title and author lists
+  var LANG={sv:'svenska',da:'danska',no:'norska',fi:'finska',is:'isländska',de:'tyska',en:'engelska',la:'latin',fr:'franska',et:'estniska',fo:'färöiska',ru:'ryska',nl:'nederländska',it:'italienska',se:'samiska'};
+  function fold(x){return (x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/æ/g,'ae').replace(/ø/g,'o').replace(/ß/g,'ss');}
+  var T=[],A=[],ready=false,tab='t',shown=24,lastQ='';
+  var qi=document.getElementById('q'), idle=document.getElementById('rIdle'), body=document.getElementById('rBody'),
+      cards=document.getElementById('cards'), more=document.getElementById('more'), lang=document.getElementById('lang'),
+      tabT=document.getElementById('tabT'), tabA=document.getElementById('tabA'), ft=document.getElementById('fulltext');
+
+  fetch('katalog.json').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){
+    T=d.t.map(function(r){return {t:r[0],k:r[1],a:r[2],l:r[3],y:r[4],f:fold(r[0]),fa:fold(r[2])};});
+    A=d.a.map(function(r){return {n:r[0],k:r[1],b:r[2],d:r[3],c:r[4],f:fold(r[0])};});
+    ready=true;
+    idle.textContent='Sök bland '+T.length.toLocaleString('sv-SE')+' verk och '+A.length.toLocaleString('sv-SE')+' författare i Runebergs katalog.';
+    if(qi.value.trim()) run(); 
+  }).catch(function(){ idle.innerHTML=''; idle.append('Katalogen kunde inte laddas. '); var l=document.createElement('a'); l.href=RB; l.target='_blank'; l.rel='noopener'; l.textContent='Sök direkt på runeberg.org →'; idle.append(l); });
+
+  function score(f,words,full){
+    var s=0;
+    for(var i=0;i<words.length;i++){var p=f.indexOf(words[i]); if(p<0)return -1; s+= p===0?3:(f.charAt(p-1)===' '?2:1);}
+    if(f===full)s+=10; else if(f.indexOf(full)===0)s+=4;
+    return s;
+  }
+  function search(q){
+    var full=fold(q).trim(), words=full.split(/\s+/).filter(Boolean), L=lang.value, rt=[], ra=[];
+    T.forEach(function(r){
+      if(L && r.l!==L) return;
+      var st=score(r.f,words,full), sau=score(r.fa,words,full), sa=score(r.f+' '+r.fa,words,full);
+      var sc=Math.max(st>=0?st+2:-1, sau>=0?sau+3:-1, sa);
+      if(sc>=0) rt.push([sc,r]);
+    });
+    A.forEach(function(r){var sc=score(r.f,words,full); if(sc>=0) ra.push([sc+Math.min(r.c,20)/10,r]);});
+    rt.sort(function(x,y){return y[0]-x[0]||x[1].t.length-y[1].t.length;});
+    ra.sort(function(x,y){return y[0]-x[0]||y[1].c-x[1].c;});
+    return {t:rt.map(function(x){return x[1];}),a:ra.map(function(x){return x[1];}),words:words};
+  }
+  function hl(el,text,words){
+    var f=fold(text), marks=[];
+    words.forEach(function(w){var p=f.indexOf(w); if(p>=0) marks.push([p,p+w.length]);});
+    marks.sort(function(a,b){return a[0]-b[0];});
+    var pos=0;
+    marks.forEach(function(m){ if(m[0]<pos) return; el.append(text.slice(pos,m[0])); var k=document.createElement('mark'); k.textContent=text.slice(m[0],m[1]); el.append(k); pos=m[1]; });
+    el.append(text.slice(pos));
+  }
+  function card(href,sigL,sigR,title,sub,words){
+    var a=document.createElement('a'); a.className='kort'; a.href=href; a.target='_blank'; a.rel='noopener';
+    var sg=document.createElement('div'); sg.className='sig'; var l=document.createElement('span'); l.textContent=sigL; var r=document.createElement('span'); r.textContent=sigR; sg.append(l,r);
+    var ti=document.createElement('div'); ti.className='ti'; hl(ti,title,words);
+    var au=document.createElement('div'); au.className='au'; hl(au,sub,words);
+    a.append(sg,ti,au); return a;
+  }
+  var res=null;
+  function render(){
+    cards.textContent='';
+    var list=tab==='t'?res.t:res.a;
+    document.getElementById('nT').textContent=res.t.length.toLocaleString('sv-SE');
+    document.getElementById('nA').textContent=res.a.length.toLocaleString('sv-SE');
+    tabT.setAttribute('aria-selected',tab==='t'); tabA.setAttribute('aria-selected',tab==='a');
+    lang.parentNode.hidden = tab==='a';
+    if(!list.length){
+      var e=document.createElement('div'); e.className='r-empty';
+      e.textContent=tab==='t'?'Inget verk i katalogen matchar sökningen. Ordet kan ändå finnas inne i texterna – prova fulltextsökningen nedan.':'Ingen författare matchar sökningen.';
+      cards.append(e);
+    }
+    list.slice(0,shown).forEach(function(r){
+      if(tab==='t') cards.append(card(workUrl(r.k),'/'+r.k+'/',[r.y,LANG[r.l]||r.l].filter(Boolean).join(' · '),r.t,r.a||'Okänd eller flera upphovspersoner',res.words));
+      else cards.append(card(RB+'authors/'+r.k+'.html',(r.b||'?')+'–'+(r.d||''),r.c+(r.c===1?' verk':' verk'),r.n,'Visa författarsidan',res.words));
+    });
+    more.hidden=list.length<=shown;
+    more.textContent='Visa fler ('+(list.length-shown).toLocaleString('sv-SE')+' till)';
+  }
+  function run(){
+    var q=qi.value.trim();
+    ft.href=q?searchUrl(q):RB+'search.pl';
+    if(!ready) return;
+    if(!q){ body.hidden=true; idle.hidden=false; return; }
+    if(q!==lastQ){shown=24; lastQ=q;}
+    res=search(q);
+    if(tab==='t' && !res.t.length && res.a.length) tab='a';
+    idle.hidden=true; body.hidden=false; render();
+  }
+  var timer; qi.addEventListener('input',function(){clearTimeout(timer); timer=setTimeout(function(){tab='t';run();},120);});
+  document.getElementById('searchForm').addEventListener('submit',function(e){e.preventDefault();run();});
+  lang.addEventListener('change',function(){shown=24;run();});
+  tabT.addEventListener('click',function(){tab='t';shown=24;render();});
+  tabA.addEventListener('click',function(){tab='a';shown=24;render();});
+  more.addEventListener('click',function(){shown+=48;render();});
+  document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){qi.value=c.dataset.q;tab='t';run();});});
 
   // Opening lines
   var lines=[
-    {t:'Äntligen stod prästen i predikstolen.',a:'Selma Lagerlöf',w:'Gösta Berlings saga (1891)',q:'Gösta Berlings saga'},
-    {t:'Vårt land, vårt land, vårt fosterland, ljud högt, o dyra ord!',a:'Johan Ludvig Runeberg',w:'Fänrik Ståls sägner (1848)',q:'Fänrik Ståls sägner'},
-    {t:'Gubben Noak, gubben Noak var en hedersman.',a:'Carl Michael Bellman',w:'Fredmans sånger (1791)',q:'Bellman Fredmans sånger'},
-    {t:'Det går an.',a:'Carl Jonas Love Almqvist',w:'Det går an (1839)',q:'Almqvist Det går an'},
-    {t:'Hur lagade man mat för hundra år sedan? Svaret finns bevarat – recept för recept.',a:'Ur samlingarna',w:'Gamla kokböcker',q:'kokbok'},
-    {t:'Vad visste man om elektriciteten, Kina eller kometer år 1910? Slå upp och se.',a:'Ur samlingarna',w:'Nordisk familjebok',q:'Nordisk familjebok'},
-    {t:'Det var en afton i början af maj.',a:'August Strindberg',w:'Röda rummet (1879)',q:'Strindberg Röda rummet'},
-    {t:'Där växte uti Hildings gård två plantor under fostrarns vård.',a:'Esaias Tegnér',w:'Frithiofs saga (1825)',q:'Tegnér Frithiofs saga'}
+    {t:'Äntligen stod prästen i predikstolen.',a:'Selma Lagerlöf',w:'Gösta Berlings saga (1891)',k:'berling'},
+    {t:'Vårt land, vårt land, vårt fosterland, ljud högt, o dyra ord!',a:'Johan Ludvig Runeberg',w:'Fänrik Ståls sägner (1848)',k:'fstal'},
+    {t:'Gubben Noak, gubben Noak var en hedersman.',a:'Carl Michael Bellman',w:'Fredmans sånger (1791)',k:'fredsang'},
+    {t:'Det går an.',a:'Carl Jonas Love Almqvist',w:'Det går an (1838)',k:'detgaran1'},
+    {t:'Hur lagade man mat för hundra år sedan? Svaret finns bevarat – recept för recept.',a:'Ur samlingarna',w:'Gamla kokböcker',s:'kokbok'},
+    {t:'Vad visste man om elektriciteten, Kina eller kometer år 1910? Slå upp och se.',a:'Ur samlingarna',w:'Nordisk familjebok',k:'nf'},
+    {t:'Det var en afton i början af maj.',a:'August Strindberg',w:'Röda rummet (1879)',k:'rodarum'},
+    {t:'Där växte uti Hildings gård två plantor under fostrarns vård.',a:'Esaias Tegnér',w:'Frithiofs saga (1825)',k:'fritiofs'}
   ];
   var i=0, qT=document.getElementById('qText'), qW=document.getElementById('qWho'), rb=document.getElementById('readBtn');
   function show(n){
@@ -354,33 +486,34 @@ footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
     setTimeout(function(){
       qT.textContent='”'+l.t+'”';
       qW.innerHTML='<b></b> · <span></span>'; qW.querySelector('b').textContent=l.a; qW.querySelector('span').textContent=l.w;
-      rb.href=searchUrl(l.q); rb.target='_blank'; rb.rel='noopener';
+      rb.href=l.k?workUrl(l.k):searchUrl(l.s); rb.target='_blank'; rb.rel='noopener';
       qT.classList.remove('fade'); qW.classList.remove('fade');
     },300);
   }
-  rb.href=searchUrl(lines[0].q); rb.target='_blank'; rb.rel='noopener';
+  rb.href=workUrl(lines[0].k); rb.target='_blank'; rb.rel='noopener';
   document.getElementById('nextBtn').addEventListener('click',function(){
     var n; do{n=Math.floor(Math.random()*lines.length);}while(n===i); i=n; show(i);
   });
 
   // Shelf
   var books=[
-    ['Gösta Berlings saga','Lagerlöf','1891','#7a2e1f'],
-    ['Röda rummet','Strindberg','1879','#9b3a2a'],
-    ['Fänrik Ståls sägner','Runeberg','1848','#2f4a5e'],
-    ['Fredmans epistlar','Bellman','1790','#5c4a1e'],
-    ['Frithiofs saga','Tegnér','1825','#36533f'],
-    ['Det går an','Almqvist','1839','#5a3350'],
-    ['Nils Holgerssons underbara resa','Lagerlöf','1906','#2e5a63'],
-    ['Hemsöborna','Strindberg','1887','#3d4b2a'],
-    ['Kalevala','Lönnrot','1849','#4a3b2a']
+    ['Gösta Berlings saga','berling','Lagerlöf','1891','#7a2e1f'],
+    ['Röda rummet','rodarum','Strindberg','1879','#9b3a2a'],
+    ['Fänrik Ståls sägner','fstal','Runeberg','1848','#2f4a5e'],
+    ['Fredmans epistlar','fredepis','Bellman','1790','#5c4a1e'],
+    ['Frithiofs saga','fritiofs','Tegnér','1825','#36533f'],
+    ['Det går an','detgaran1','Almqvist','1838','#5a3350'],
+    ['Nils Holgerssons underbara resa','nilsholg','Lagerlöf','1906','#2e5a63'],
+    ['Jerusalem','jerusalm','Lagerlöf','1901','#3d4b2a'],
+    ['Peer Gynt','peergynt','Ibsen','1867','#6b3a2e'],
+    ['Kalevala','kalevala','Lönnrot','1849','#4a3b2a']
   ];
   var shelf=document.getElementById('shelf');
   books.forEach(function(b){
-    var a=document.createElement('a'); a.className='book'; a.href=searchUrl(b[0]+' '+b[1]); a.target='_blank'; a.rel='noopener';
-    a.style.background='linear-gradient(160deg,'+b[3]+','+b[3]+'cc)';
+    var a=document.createElement('a'); a.className='book'; a.href=workUrl(b[1]); a.target='_blank'; a.rel='noopener';
+    a.style.background='linear-gradient(160deg,'+b[4]+','+b[4]+'cc)';
     a.innerHTML='<div class="a"></div><div class="t"></div><div class="y"></div>';
-    a.querySelector('.a').textContent=b[1]; a.querySelector('.t').textContent=b[0]; a.querySelector('.y').textContent=b[2];
+    a.querySelector('.a').textContent=b[2]; a.querySelector('.t').textContent=b[0]; a.querySelector('.y').textContent=b[3];
     shelf.appendChild(a);
   });
 })();
